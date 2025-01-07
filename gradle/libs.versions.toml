@@ -1,0 +1,21 @@
+[versions]
+
+androidcontextprovider = "1.0.1"
+kotlin = "2.1.0"
+agp = "8.6.1"
+compose = "1.7.3"
+androidx-activityCompose = "1.9.3"
+
+[libraries]
+
+androidcontextprovider = { module = "io.github.kdroidfilter:androidcontextprovider", version.ref = "androidcontextprovider" }
+androidx-activityCompose = { module = "androidx.activity:activity-compose", version.ref = "androidx-activityCompose" }
+
+[plugins]
+
+multiplatform = { id = "org.jetbrains.kotlin.multiplatform", version.ref = "kotlin" }
+android-library = { id = "com.android.library", version.ref = "agp" }
+compose = { id = "org.jetbrains.compose", version.ref = "compose" }
+compose-compiler = { id = "org.jetbrains.kotlin.plugin.compose", version.ref = "kotlin" }
+android-application = { id = "com.android.application", version.ref = "agp" }
+vannitktech-maven-publish = {id = "com.vanniktech.maven.publish", version = "0.30.0"}
