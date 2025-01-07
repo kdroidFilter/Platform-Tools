@@ -1,9 +1,11 @@
 import com.vanniktech.maven.publish.SonatypeHost
+import org.jetbrains.dokka.gradle.DokkaTask
 
 plugins {
     alias(libs.plugins.multiplatform)
     alias(libs.plugins.android.library)
     alias(libs.plugins.vannitktech.maven.publish)
+    alias(libs.plugins.dokka)
 }
 
 group = "io.github.kdroidfilter.platformtools"
@@ -143,4 +145,9 @@ mavenPublishing {
     publishToMavenCentral(SonatypeHost.CENTRAL_PORTAL)
 
     signAllPublications()
+}
+
+tasks.withType<DokkaTask>().configureEach {
+    moduleName.set("Platforms Tools")
+    offlineMode.set(true)
 }
