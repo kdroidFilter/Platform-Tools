@@ -22,12 +22,8 @@
 Add the following dependency to your Kotlin Multiplatform project:
 
 ```kotlin
-implementation("io.github.kdroidfilter:platformtools:<latest_version>")
+implementation("io.github.kdroidfilter:platformtools:0.1.0")
 ```
-
-Replace `<latest_version>` with the latest version available on Maven Central.
-
----
 
 ## 🌟 Purpose
 
@@ -87,6 +83,6 @@ PlatformTools is licensed under the [MIT License](https://opensource.org/license
 
 ## 🤝 Contributions
 
-Contributions are welcome! If you want to improve this library, please feel free to submit a pull request or open an issue on [GitHub](https://github.com/kdroidFilter/platformtools).
+Contributions are welcome! If you want to improve this library, please feel free to submit a pull request or open an issue.
 
 ---
