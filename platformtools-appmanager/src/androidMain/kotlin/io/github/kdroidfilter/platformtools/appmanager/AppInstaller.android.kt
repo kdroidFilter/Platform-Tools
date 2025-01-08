@@ -186,16 +186,34 @@ class ApkInstallerAndroid : AppInstaller {
         }
     }
 
+    /**
+     * Method to uninstall an app by package name.
+     */
     override suspend fun uninstallApp(packageName: String, onResult: (success: Boolean, message: String?) -> Unit) {
-        val packageURI: Uri = Uri.parse("package:$packageName")
-        val uninstallIntent = Intent(Intent.ACTION_DELETE, packageURI)
-        context.startActivity(uninstallIntent)
+        try {
+            val packageURI: Uri = Uri.parse("package:$packageName")
+            val uninstallIntent = Intent(Intent.ACTION_DELETE, packageURI)
+            context.startActivity(uninstallIntent)
+            onResult(true, "Uninstall process started for package: $packageName.")
+        } catch (e: Exception) {
+            Log.e("UninstallApp", "Error during uninstallation: ${e.message}", e)
+            onResult(false, "Error during uninstallation: ${e.message}")
+        }
     }
 
+    /**
+     * Method to uninstall the current app.
+     */
     override suspend fun uninstallApp(onResult: (success: Boolean, message: String?) -> Unit) {
-        val packageURI: Uri = Uri.parse("package:" + context.packageName)
-        val uninstallIntent = Intent(Intent.ACTION_DELETE, packageURI)
-        context.startActivity(uninstallIntent)
+        try {
+            val packageURI: Uri = Uri.parse("package:" + context.packageName)
+            val uninstallIntent = Intent(Intent.ACTION_DELETE, packageURI)
+            context.startActivity(uninstallIntent)
+            onResult(true, "Uninstall process started for the current app.")
+        } catch (e: Exception) {
+            Log.e("UninstallApp", "Error during uninstallation: ${e.message}", e)
+            onResult(false, "Error during uninstallation: ${e.message}")
+        }
     }
 
 }
