@@ -30,6 +30,7 @@ dependencyResolutionManagement {
 }
 include(":platformtools")
 include(":platformtools-appmanager")
+include(":platformtools-release-fetcher")
 include(":sample:composeApp")
 include(":sample:terminalApp")
 
