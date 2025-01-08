@@ -41,13 +41,14 @@ object WindowsPrivilegeHelper {
 
     /**
      * Demande l'élévation (UAC) pour installer un MSI via msiexec.
+     * Attend la fin du processus msiexec et retourne le résultat via le callback.
      */
-    fun requestAdminPrivilegesForMsi(msiPath: String) {
+    private fun requestAdminPrivilegesForMsi(msiPath: String, onResult: (Boolean, String?) -> Unit) {
         val shellExecuteInfo = ShellAPI.SHELLEXECUTEINFO().apply {
             cbSize = size()
-            lpVerb = "runas"                         // Demande l'élévation (UAC)
-            lpFile = "msiexec"                       // Chemin de l’exécutable (dans le PATH)
-            lpParameters = "/i \"$msiPath\" /quiet"   // Paramètres pour installer le MSI silencieusement
+            lpVerb = "runas" // Demande l'élévation (UAC)
+            lpFile = "msiexec" // Executable dans le PATH
+            lpParameters = "/i \"$msiPath\" /quiet /l*v \"${File(msiPath).parentFile?.absolutePath}\\installation_log.txt\""
             nShow = WinUser.SW_SHOWNORMAL
             fMask = Shell32.SEE_MASK_NOCLOSEPROCESS
         }
@@ -55,9 +56,41 @@ object WindowsPrivilegeHelper {
         val success = Shell32.INSTANCE.ShellExecuteEx(shellExecuteInfo)
         if (!success) {
             val errorCode = Kernel32.INSTANCE.GetLastError()
-            println("Échec de ShellExecuteEx pour l’MSI. Code erreur : $errorCode")
-        } else {
-            println("Demande d'élévation UAC pour l’installation du MSI réussie.")
+            onResult(false, "Échec de ShellExecuteEx pour l’MSI. Code erreur : $errorCode")
+            return
+        }
+
+        val hProcess = shellExecuteInfo.hProcess
+        if (hProcess == null) {
+            onResult(false, "Handle de processus nul après ShellExecuteEx.")
+            return
+        }
+
+        try {
+            // Attendre que le processus msiexec se termine
+            val waitResult = Kernel32.INSTANCE.WaitForSingleObject(hProcess, WinBase.INFINITE)
+            if (waitResult != WinBase.WAIT_OBJECT_0) {
+                onResult(false, "Échec de l'attente du processus msiexec.")
+                return
+            }
+
+            // Obtenir le code de sortie de msiexec
+            val exitCode = IntByReference()
+            val getExitSuccess = Kernel32.INSTANCE.GetExitCodeProcess(hProcess, exitCode)
+            if (!getExitSuccess) {
+                val errorCode = Kernel32.INSTANCE.GetLastError()
+                onResult(false, "Échec de GetExitCodeProcess. Code erreur : $errorCode")
+                return
+            }
+
+            if (exitCode.value == 0) {
+                onResult(true, null)
+            } else {
+                onResult(false, "Échec de l'installation MSI avec le code de sortie : ${exitCode.value}")
+            }
+
+        } finally {
+            Kernel32.INSTANCE.CloseHandle(hProcess)
         }
     }
 
@@ -75,13 +108,8 @@ object WindowsPrivilegeHelper {
         // 1. Vérifier si on demande explicitement des privilèges admin
         if (requireAdmin && !isProcessElevated()) {
             // Si on a besoin des droits admin et qu'on n'est pas en mode admin,
-            // on lance la demande d'élévation et on arrête ici.
-            requestAdminPrivilegesForMsi(installerFile.absolutePath)
-            onResult(
-                false,
-                "Installation interrompue pour demander l’élévation des privilèges. " +
-                        "Veuillez accepter la boîte de dialogue UAC."
-            )
+            // on lance la demande d'élévation et on attend le résultat.
+            requestAdminPrivilegesForMsi(installerFile.absolutePath, onResult)
             return
         }
 

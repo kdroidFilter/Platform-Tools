@@ -6,7 +6,7 @@ import io.github.kdroidfilter.platformtools.getPlatform
 import io.github.oshai.kotlinlogging.KotlinLogging
 import java.io.File
 
-private val logger = KotlinLogging.logger {}
+ val logger = KotlinLogging.logger {}
 
 
 actual fun getAppInstaller(): AppInstaller = DesktopInstaller()
