@@ -34,11 +34,6 @@ The main goal of this library is to serve as a versatile toolkit for implementin
 
 Currently, there is no precise long-term objective for this library beyond its existing functionality. It was initially developed to facilitate communication between Android and JVM platforms. However, there is potential for expanding to a fully-fledged Kotlin Multiplatform implementation as needs arise.
 
-The main goal of this library is to serve as a versatile toolkit for implementing platform-specific utilities. While this approach might seem contrary to the `expect/actual` pattern of Kotlin Multiplatform, **PlatformTools** fills a specific gap:
-
-- It enables operating system detection within the JVM, which is not natively supported by KMP.
-- It allows OS detection in common code for minor functionalities where embedding such logic can be beneficial.
-
 This makes **PlatformTools** a practical choice when small but essential platform-specific implementations are needed.
 
 ---
