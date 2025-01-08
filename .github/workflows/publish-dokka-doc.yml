@@ -34,14 +34,14 @@ jobs:
       # Generate Dokka documentation
       - name: Generate Dokka documentation
         run: |
-          ./gradlew dokkaHtml
+          ./gradlew dokkaHtmlMultiModule
 
       # Prepare files for deployment
       - name: Prepare files for deployment
         run: |
           mkdir -p build/final
           # Copy the documentation to build/final (site root)
-          cp -r platformtools/build/dokka/html/* build/final
+          cp -r platformtools/build/dokka/htmlMultiModule/* build/final
 
       # Upload to the "pages" artifact to make it available for the next job
       - name: Upload artifact for GitHub Pages

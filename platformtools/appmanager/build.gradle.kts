@@ -6,13 +6,10 @@ plugins {
     alias(libs.plugins.android.library)
     alias(libs.plugins.vannitktech.maven.publish)
     alias(libs.plugins.dokka)
-    alias(libs.plugins.kotlinx.serialization)
-
 }
-
 val libVersion : String by rootProject.extra
 
-group = "io.github.kdroidfilter.platformtools.releasefetcher"
+group = "io.github.kdroidfilter.platformtools.appmanager"
 version = libVersion
 
 kotlin {
@@ -24,34 +21,24 @@ kotlin {
 
     sourceSets {
         commonMain.dependencies {
-            implementation(project(":platformtools"))
-            implementation(libs.kotlinx.serialization.json)
+            implementation(project(":platformtools:core"))
             implementation(libs.kotlinx.coroutines.core)
-            implementation(libs.ktor.client.core)
-            implementation(libs.ktor.client.content.negotiation)
-            implementation(libs.ktor.client.serialization)
-            implementation(libs.ktor.client.logging)
-            implementation(libs.ktor.client.cio)
-            api(libs.semver)
-
-
+            implementation(libs.kotlin.logging)
         }
 
         commonTest.dependencies {
             implementation(kotlin("test"))
         }
 
-
-        jvmMain {
-            dependencies {
-                implementation(libs.androidcontextprovider)
-            }
+        jvmMain.dependencies {
+            implementation(libs.jna)
+            implementation(libs.jna.platform)
         }
 
-        androidMain {
-            dependencies {
-                implementation(libs.androidcontextprovider)
-            }
+        androidMain.dependencies {
+            implementation(libs.androidx.core)
+            implementation(libs.androidx.activity.ktx)
+            implementation(libs.androidcontextprovider)
         }
 
 
@@ -69,7 +56,7 @@ kotlin {
 }
 
 android {
-    namespace = "io.github.kdroidfilter.platformtools.releasefetcher"
+    namespace = "io.github.kdroidfilter.platformtools.appmanager"
     compileSdk = 35
 
     defaultConfig {
@@ -80,12 +67,12 @@ android {
 mavenPublishing {
     coordinates(
         groupId = "io.github.kdroidfilter",
-        artifactId = "platformtools.releasefetcher",
+        artifactId = "platformtools.appmanager",
         version = version.toString()
     )
 
     pom {
-        name.set("PlatformTools")
+        name.set("PlatformTools AppManager")
         description.set("A Kotlin Multiplatform library to manage platform-specific utilities and tools.")
         inceptionYear.set("2025") // Change si la création du projet est plus ancienne.
         url.set("https://github.com/kdroidFilter/")

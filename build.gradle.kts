@@ -7,4 +7,8 @@ plugins {
     alias(libs.plugins.vannitktech.maven.publish).apply(false)
 }
 
+subprojects {
+    apply(plugin = "org.jetbrains.dokka")
+}
+
 extra["libVersion"] = "0.1.0"

@@ -35,7 +35,7 @@ kotlin {
         commonMain.dependencies {
             implementation(compose.runtime)
             implementation(compose.foundation)
-            implementation(project(":platformtools"))
+            implementation(project(":platformtools:core"))
         }
 
         androidMain.dependencies {

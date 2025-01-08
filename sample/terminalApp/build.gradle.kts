@@ -16,7 +16,7 @@ kotlin {
 
     sourceSets {
         commonMain.dependencies {
-            implementation(project(":platformtools"))
+            implementation(project(":platformtools:core"))
         }
     }
 }

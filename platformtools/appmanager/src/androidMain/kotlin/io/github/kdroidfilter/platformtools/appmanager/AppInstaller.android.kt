@@ -20,7 +20,7 @@ import java.io.FileInputStream
 import java.io.IOException
 import kotlin.coroutines.resume
 
-fun getAppInstaller(): AppInstaller = ApkInstallerAndroid()
+actual fun getAppInstaller(): AppInstaller = ApkInstallerAndroid()
 
 class ApkInstallerAndroid : AppInstaller {
     private val context = ContextProvider.getContext()
