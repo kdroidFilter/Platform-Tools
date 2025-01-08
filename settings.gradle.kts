@@ -29,6 +29,7 @@ dependencyResolutionManagement {
     }
 }
 include(":platformtools")
+include(":platformtools-appmanager")
 include(":sample:composeApp")
 include(":sample:terminalApp")
 

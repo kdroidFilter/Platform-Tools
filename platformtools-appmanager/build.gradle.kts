@@ -7,10 +7,9 @@ plugins {
     alias(libs.plugins.vannitktech.maven.publish)
     alias(libs.plugins.dokka)
 }
-
 val libVersion : String by rootProject.extra
 
-group = "io.github.kdroidfilter.platformtools"
+group = "io.github.kdroidfilter.platformtools.appmanager"
 version = libVersion
 
 kotlin {
@@ -18,73 +17,29 @@ kotlin {
 
     androidTarget { publishLibraryVariants("release") }
     jvm()
-    js { browser() }
-    wasmJs { browser() }
-    iosX64()
-    iosArm64()
-    iosSimulatorArm64()
-    macosX64()
-    macosArm64()
-    linuxX64()
-    mingwX64()
+
 
     sourceSets {
         commonMain.dependencies {
+            implementation(project(":platformtools"))
+            implementation(libs.kotlinx.coroutines.core)
+            implementation(libs.kotlin.logging)
         }
 
         commonTest.dependencies {
             implementation(kotlin("test"))
         }
 
-        val androidJvmMain by creating {
-            dependsOn(commonMain.get())
+        jvmMain.dependencies {
+            implementation(libs.jna)
+            implementation(libs.jna.platform)
         }
 
-        jvmMain {
-            dependsOn(androidJvmMain)
-            dependencies {
-                implementation(libs.androidcontextprovider)
-            }
+        androidMain.dependencies {
+            implementation(libs.androidx.core)
+            implementation(libs.androidx.activity.ktx)
+            implementation(libs.androidcontextprovider)
         }
-
-        androidMain {
-            dependsOn(androidJvmMain)
-            dependencies {
-                implementation(libs.androidcontextprovider)
-            }
-        }
-
-        val ios = listOf(
-            iosX64(),
-            iosArm64(),
-            iosSimulatorArm64()
-        )
-
-        val macos = listOf(
-            macosX64(),
-            macosArm64()
-        )
-
-        val iosMain by creating {
-            dependsOn(commonMain.get())
-        }
-
-        val macosMain by creating {
-            dependsOn(commonMain.get())
-        }
-
-        ios.forEach {
-            it.compilations["main"].defaultSourceSet {
-                dependsOn(iosMain)
-            }
-        }
-
-        macos.forEach {
-            it.compilations["main"].defaultSourceSet {
-                dependsOn(macosMain)
-            }
-        }
-
 
 
     }
@@ -101,7 +56,7 @@ kotlin {
 }
 
 android {
-    namespace = "io.github.kdroidfilter.platformtools"
+    namespace = "io.github.kdroidfilter.platformtools.appmanager"
     compileSdk = 35
 
     defaultConfig {
@@ -112,12 +67,12 @@ android {
 mavenPublishing {
     coordinates(
         groupId = "io.github.kdroidfilter",
-        artifactId = "platformtools",
+        artifactId = "platformtools.appmanager",
         version = version.toString()
     )
 
     pom {
-        name.set("PlatformTools")
+        name.set("PlatformTools AppManager")
         description.set("A Kotlin Multiplatform library to manage platform-specific utilities and tools.")
         inceptionYear.set("2025") // Change si la création du projet est plus ancienne.
         url.set("https://github.com/kdroidFilter/")
