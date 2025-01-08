@@ -37,7 +37,7 @@ class Downloader {
                 onDownload { bytesSentTotal, contentLength ->
                     val progress = if (contentLength != null && contentLength > 0) {
                         (bytesSentTotal * 100.0 / contentLength)
-                    } else 0.0  
+                    } else 0.0
                     logger.debug { "Progress: $bytesSentTotal / $contentLength bytes" }
                     onProgress(progress, null)
                 }
