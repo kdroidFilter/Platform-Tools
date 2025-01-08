@@ -6,9 +6,6 @@ import io.ktor.client.plugins.*
 
 // Global Ktor configuration
 val client = HttpClient(CIO) {
-    install(HttpRedirect) {
-        checkHttpMethod = false
-    }
     followRedirects = true
 
 }

@@ -34,7 +34,7 @@ kotlin {
             implementation(libs.ktor.client.cio)
             api(libs.semver)
             implementation(libs.slf4j.simple)
-
+            implementation(libs.kotlin.logging)
 
         }
 

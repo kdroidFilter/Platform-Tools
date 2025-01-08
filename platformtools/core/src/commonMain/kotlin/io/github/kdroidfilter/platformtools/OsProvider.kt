@@ -18,13 +18,13 @@ package io.github.kdroidfilter.platformtools
  * - `WASMJS`: Represents WebAssembly environments executed via JavaScript.
  * - `UNKNOWN`: Represents an unrecognized or unsupported operating system.
  */
-enum class OperatingSystem {
+enum class Platform {
     WINDOWS, MAC, LINUX, ANDROID, IOS, JS, WASMJS, UNKNOWN
 }
 
 /**
  * Determines and returns the current operating system on which the code is running.
  *
- * @return An instance of [OperatingSystem] representing the detected operating system.
+ * @return An instance of [Platform] representing the detected operating system.
  */
-expect fun getOperatingSystem(): OperatingSystem
+expect fun getPlatform(): Platform

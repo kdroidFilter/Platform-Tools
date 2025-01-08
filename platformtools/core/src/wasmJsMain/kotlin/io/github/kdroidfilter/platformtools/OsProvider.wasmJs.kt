@@ -1,3 +1,3 @@
 package io.github.kdroidfilter.platformtools
 
-actual fun getOperatingSystem(): OperatingSystem = OperatingSystem.WASMJS
+actual fun getPlatform(): Platform = Platform.WASMJS

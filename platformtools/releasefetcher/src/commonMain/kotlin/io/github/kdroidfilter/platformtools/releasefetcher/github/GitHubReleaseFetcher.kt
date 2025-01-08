@@ -1,8 +1,8 @@
 package io.github.kdroidfilter.platformtools.releasefetcher.github
 
-import io.github.kdroidfilter.platformtools.OperatingSystem
+import io.github.kdroidfilter.platformtools.Platform
 import io.github.kdroidfilter.platformtools.getAppVersion
-import io.github.kdroidfilter.platformtools.getOperatingSystem
+import io.github.kdroidfilter.platformtools.getPlatform
 import io.github.kdroidfilter.platformtools.releasefetcher.config.client
 import io.github.kdroidfilter.platformtools.releasefetcher.github.model.Release
 import io.github.z4kn4fein.semver.toVersion
@@ -15,7 +15,7 @@ import kotlinx.coroutines.withContext
 import kotlinx.serialization.json.Json
 
 class GitHubReleaseFetcher(
-    private val repoOwner: String,
+    private val owner: String,
     private val repo: String,
 ) {
 
@@ -26,7 +26,7 @@ class GitHubReleaseFetcher(
      */
     suspend fun getLatestRelease(): Release? = withContext(Dispatchers.IO) {
         try {
-            val response: HttpResponse = client.get("https://api.github.com/repos/$repoOwner/$repo/releases/latest")
+            val response: HttpResponse = client.get("https://api.github.com/repos/$owner/$repo/releases/latest")
 
             if (response.status == HttpStatusCode.OK) {
                 val responseBody: String = response.body()
@@ -64,13 +64,13 @@ class GitHubReleaseFetcher(
      */
     fun getDownloadLinkForPlatform(release: Release): String? {
         val platformFileTypes = mapOf(
-            OperatingSystem.ANDROID to ".apk",
-            OperatingSystem.WINDOWS to ".msi",
-            OperatingSystem.LINUX to ".deb",
-            OperatingSystem.MAC to ".dmg"
+            Platform.ANDROID to ".apk",
+            Platform.WINDOWS to ".msi",
+            Platform.LINUX to ".deb",
+            Platform.MAC to ".dmg"
         )
 
-        val fileType = platformFileTypes[getOperatingSystem()] ?: return null
+        val fileType = platformFileTypes[getPlatform()] ?: return null
 
         // Find the corresponding asset
         val asset = release.assets.firstOrNull { it.name.endsWith(fileType, ignoreCase = true) }

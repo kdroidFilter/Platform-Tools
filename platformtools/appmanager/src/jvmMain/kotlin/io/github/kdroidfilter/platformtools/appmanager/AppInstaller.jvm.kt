@@ -1,8 +1,8 @@
 package io.github.kdroidfilter.platformtools.appmanager
 
-import io.github.kdroidfilter.platformtools.OperatingSystem
+import io.github.kdroidfilter.platformtools.Platform
 import io.github.kdroidfilter.platformtools.appmanager.WindowsPrivilegeHelper.installOnWindows
-import io.github.kdroidfilter.platformtools.getOperatingSystem
+import io.github.kdroidfilter.platformtools.getPlatform
 import io.github.oshai.kotlinlogging.KotlinLogging
 import java.io.File
 
@@ -28,16 +28,16 @@ class DesktopInstaller : AppInstaller {
      */
     override suspend fun canRequestInstallPackages(): Boolean {
         logger.debug { "Checking if install packages request can be made." }
-        return when (getOperatingSystem()) {
-            OperatingSystem.WINDOWS -> {
+        return when (getPlatform()) {
+            Platform.WINDOWS -> {
                 logger.debug { "OS=Windows, returning true directly." }
                 true
             }
-            OperatingSystem.LINUX -> {
+            Platform.LINUX -> {
                 logger.debug { "OS=Linux, returning true directly." }
                 true
             }
-            OperatingSystem.MAC -> {
+            Platform.MAC -> {
                 logger.debug { "OS=Mac, assuming elevation is not needed." }
                 true
             }
@@ -67,14 +67,14 @@ class DesktopInstaller : AppInstaller {
      */
     override suspend fun requestInstallPackagesPermission() {
         logger.debug { "Requesting install packages permission." }
-        when (getOperatingSystem()) {
-            OperatingSystem.WINDOWS -> {
+        when (getPlatform()) {
+            Platform.WINDOWS -> {
                 logger.debug { "OS=Windows, no elevation request needed." }
             }
-            OperatingSystem.LINUX -> {
+            Platform.LINUX -> {
                 logger.debug { "OS=Linux, elevation handled by pkexec." }
             }
-            OperatingSystem.MAC -> {
+            Platform.MAC -> {
                 logger.debug { "OS=Mac, elevation not implemented." }
             }
             else -> {
@@ -96,15 +96,15 @@ class DesktopInstaller : AppInstaller {
      */
     override suspend fun installApp(appFile: File, onResult: (Boolean, String?) -> Unit) {
         logger.debug { "Starting installation for file: ${appFile.absolutePath}" }
-        val osDetected = getOperatingSystem()
+        val osDetected = getPlatform()
         logger.debug { "Detected OS: $osDetected" }
 
         when (osDetected) {
-            OperatingSystem.WINDOWS -> installOnWindows(appFile, onResult)
-            OperatingSystem.LINUX -> installOnLinux(appFile, onResult)
-            OperatingSystem.MAC -> installOnMac(appFile, onResult)
+            Platform.WINDOWS -> installOnWindows(appFile, onResult)
+            Platform.LINUX -> installOnLinux(appFile, onResult)
+            Platform.MAC -> installOnMac(appFile, onResult)
             else -> {
-                val message = "Installation not supported for: ${getOperatingSystem()}"
+                val message = "Installation not supported for: ${getPlatform()}"
                 logger.debug { message }
                 onResult(false, message)
             }

@@ -8,7 +8,7 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
 import io.github.kdroidfilter.platformtools.appmanager.getAppInstaller
-import io.github.kdroidfilter.platformtools.getOperatingSystem
+import io.github.kdroidfilter.platformtools.getPlatform
 import io.github.kdroidfilter.platformtools.releasefetcher.downloader.Downloader
 import io.github.kdroidfilter.platformtools.releasefetcher.github.GitHubReleaseFetcher
 import kotlinx.coroutines.CoroutineScope
@@ -26,11 +26,11 @@ fun App() {
     ) {
         Column(horizontalAlignment = Alignment.CenterHorizontally) {
 
-            UpdateCheckerUI(GitHubReleaseFetcher(repoOwner = "kdroidfilter", repo = "KmpRealTimeLogger"))
+            UpdateCheckerUI(GitHubReleaseFetcher(owner = "kdroidfilter", repo = "KmpRealTimeLogger"))
 
             Text(
-                "Operating System: " +
-                        getOperatingSystem().name.lowercase().replaceFirstChar { it.uppercase() },
+                "Platform: " +
+                        getPlatform().name.lowercase().replaceFirstChar { it.uppercase() },
                 style = MaterialTheme.typography.titleLarge,
                 color = MaterialTheme.colorScheme.onBackground
             )

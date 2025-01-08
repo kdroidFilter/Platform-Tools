@@ -1,3 +1,3 @@
 package io.github.kdroidfilter.platformtools
 
-actual fun getOperatingSystem(): OperatingSystem = OperatingSystem.ANDROID
+actual fun getPlatform(): Platform = Platform.ANDROID
