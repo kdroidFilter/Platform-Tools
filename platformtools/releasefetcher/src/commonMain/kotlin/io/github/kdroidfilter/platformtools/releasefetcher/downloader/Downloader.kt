@@ -17,6 +17,7 @@ class Downloader {
      *  - [percentage] = -1.0 if the total size is unknown
      *  - Otherwise, it’s the calculated percentage
      */
+
     suspend fun downloadApp(
         downloadUrl: String,
         onProgress: (percentage: Double, file: File?) -> Unit

@@ -7,7 +7,6 @@ import io.github.kdroidfilter.platformtools.releasefetcher.config.client
 import io.github.kdroidfilter.platformtools.releasefetcher.github.model.Release
 import io.github.z4kn4fein.semver.toVersion
 import io.ktor.client.call.*
-import io.ktor.client.plugins.*
 import io.ktor.client.request.*
 import io.ktor.client.statement.*
 import io.ktor.http.*
@@ -19,7 +18,6 @@ class GitHubReleaseFetcher(
     private val repoOwner: String,
     private val repo: String,
 ) {
-
 
     private val json = Json { ignoreUnknownKeys = true }
 
