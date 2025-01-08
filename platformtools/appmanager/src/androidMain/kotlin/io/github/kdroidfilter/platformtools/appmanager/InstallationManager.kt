@@ -1,4 +1,4 @@
-package io.github.kdroidfilter.platformtools.appmanager.silentinstall
+package io.github.kdroidfilter.platformtools.appmanager
 
 /**
  * Manages installation callbacks and notifies the result of installation processes.

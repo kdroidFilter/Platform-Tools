@@ -11,7 +11,6 @@ import android.provider.Settings
 import android.util.Log
 import androidx.core.content.FileProvider
 import com.kdroid.androidcontextprovider.ContextProvider
-import io.github.kdroidfilter.platformtools.appmanager.silentinstall.InstallationManager
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.suspendCancellableCoroutine
 import kotlinx.coroutines.withContext
@@ -39,7 +38,7 @@ class ApkInstallerAndroid : AppInstaller {
                 data = Uri.parse("package:${context.packageName}")
                 flags = Intent.FLAG_ACTIVITY_NEW_TASK
             }
-            suspendCancellableCoroutine<Unit> { cont ->
+            suspendCancellableCoroutine { cont ->
                 try {
                     context.startActivity(intent)
                 } catch (e: Exception) {

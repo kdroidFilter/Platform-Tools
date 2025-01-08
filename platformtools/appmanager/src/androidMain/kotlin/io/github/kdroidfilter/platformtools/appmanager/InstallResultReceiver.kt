@@ -1,4 +1,4 @@
-package io.github.kdroidfilter.platformtools.appmanager.silentinstall
+package io.github.kdroidfilter.platformtools.appmanager
 
 import android.content.BroadcastReceiver
 import android.content.Context

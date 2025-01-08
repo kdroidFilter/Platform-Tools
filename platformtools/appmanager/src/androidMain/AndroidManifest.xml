@@ -17,7 +17,7 @@
         </provider>
 
         <receiver
-                android:name=".silentinstall.InstallResultReceiver"
+                android:name=".InstallResultReceiver"
                 android:enabled="true"
                 android:exported="false">
             <intent-filter>
