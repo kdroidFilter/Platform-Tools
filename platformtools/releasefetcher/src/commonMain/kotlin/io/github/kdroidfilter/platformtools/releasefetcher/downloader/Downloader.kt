@@ -14,7 +14,7 @@ import java.io.File
 
 private val logger = KotlinLogging.logger {}
 
-private const val BUFFER_SIZE = 2621440 // 256KB buffer
+private const val BUFFER_SIZE = 2621440
 
 class Downloader {
 
@@ -28,7 +28,6 @@ class Downloader {
         val cacheDir = getCacheDir()
         val destinationFile = File(cacheDir, fileName)
 
-        // Notify 0% immediately at the start
         onProgress(0.0, null)
         logger.debug { "Download initialized: 0%" }
 
