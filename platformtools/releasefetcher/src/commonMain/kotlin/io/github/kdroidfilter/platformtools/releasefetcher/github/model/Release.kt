@@ -1,7 +1,5 @@
 package io.github.kdroidfilter.platformtools.releasefetcher.github.model
 
-import io.github.kdroidfilter.platformtools.releasefetcher.github.model.Asset
-import io.github.kdroidfilter.platformtools.releasefetcher.github.model.Author
 import kotlinx.serialization.Serializable
 
 @Serializable
