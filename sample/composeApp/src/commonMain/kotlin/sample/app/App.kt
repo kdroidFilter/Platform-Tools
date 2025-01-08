@@ -8,6 +8,7 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
 import io.github.kdroidfilter.platformtools.appmanager.getAppInstaller
+import io.github.kdroidfilter.platformtools.getAppVersion
 import io.github.kdroidfilter.platformtools.getPlatform
 import io.github.kdroidfilter.platformtools.releasefetcher.downloader.Downloader
 import io.github.kdroidfilter.platformtools.releasefetcher.github.GitHubReleaseFetcher
@@ -29,11 +30,17 @@ fun App() {
             UpdateCheckerUI(GitHubReleaseFetcher(owner = "kdroidfilter", repo = "KmpRealTimeLogger"))
 
             Text(
-                "Platform: " +
-                        getPlatform().name.lowercase().replaceFirstChar { it.uppercase() },
-                style = MaterialTheme.typography.titleLarge,
+                "Platform: " + getPlatform().name.lowercase().replaceFirstChar { it.uppercase() },
+                style = MaterialTheme.typography.bodyLarge,
                 color = MaterialTheme.colorScheme.onBackground
             )
+
+            Text(
+                "Version: " + getAppVersion(),
+                style = MaterialTheme.typography.bodyMedium,
+                color = MaterialTheme.colorScheme.onBackground
+            )
+
         }
     }
 }
