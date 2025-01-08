@@ -19,11 +19,9 @@ class Downloader {
      */
     suspend fun downloadApp(
         downloadUrl: String,
-        onProgress: (percentage: Double, totalBytes: Long) -> Unit
+        onProgress: (percentage: Double, file: File?) -> Unit
     ): Boolean {
-        val fileName = downloadUrl.substringAfterLast('/')
-            .substringBefore('?') // In case the URL contains query parameters
-
+        val fileName = downloadUrl.substringAfterLast('/').substringBefore('?') // En cas de paramètres dans l'URL
         val cacheDir = getCacheDir()
         val destinationFile = File(cacheDir, fileName)
 
@@ -43,26 +41,30 @@ class Downloader {
                             val bytesRead = channel.readAvailable(buffer)
                             if (bytesRead == -1) break
 
-                            // Write to the file
+                            // Écrire dans le fichier
                             output.write(buffer, 0, bytesRead)
                             bytesReceived += bytesRead
 
                             if (contentLength > 0) {
                                 val percentage = (bytesReceived * 100.0) / contentLength
-                                onProgress(percentage, contentLength)
+                                onProgress(percentage, null)
                             } else {
-                                // Total size unknown
-                                onProgress(-1.0, bytesReceived)
+                                // Taille totale inconnue
+                                onProgress(-1.0, null)
                             }
                         }
                     }
                 }
+                // Téléchargement terminé, notifier le fichier
+                onProgress(100.0, destinationFile)
                 true
             } else {
+                onProgress(-1.0, null)
                 false
             }
         } catch (e: Exception) {
             e.printStackTrace()
+            onProgress(-1.0, null)
             false
         }
     }

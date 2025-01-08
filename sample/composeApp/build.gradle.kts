@@ -12,30 +12,19 @@ kotlin {
 
     androidTarget()
     jvm()
-    js  {
-        browser()
-        binaries.executable()
-    }
-    wasmJs {
-        browser()
-        binaries.executable()
-    }
-    listOf(
-        iosX64(),
-        iosArm64(),
-        iosSimulatorArm64()
-    ).forEach {
-        it.binaries.framework {
-            baseName = "ComposeApp"
-            isStatic = true
-        }
-    }
+
 
     sourceSets {
         commonMain.dependencies {
             implementation(compose.runtime)
             implementation(compose.foundation)
+            implementation(compose.material3)
+            implementation(compose.ui)
+            implementation(compose.components.resources)
+            implementation(compose.components.uiToolingPreview)
             implementation(project(":platformtools:core"))
+            implementation(project(":platformtools:appmanager"))
+            implementation(project(":platformtools:releasefetcher"))
         }
 
         androidMain.dependencies {

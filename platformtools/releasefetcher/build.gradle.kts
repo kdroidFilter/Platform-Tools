@@ -33,6 +33,7 @@ kotlin {
             implementation(libs.ktor.client.logging)
             implementation(libs.ktor.client.cio)
             api(libs.semver)
+            implementation(libs.slf4j.simple)
 
 
         }
@@ -45,6 +46,7 @@ kotlin {
         jvmMain {
             dependencies {
                 implementation(libs.androidcontextprovider)
+
             }
         }
 

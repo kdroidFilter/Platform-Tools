@@ -2,24 +2,18 @@ package io.github.kdroidfilter.platformtools.releasefetcher.github
 
 import io.github.kdroidfilter.platformtools.OperatingSystem
 import io.github.kdroidfilter.platformtools.getAppVersion
-import io.github.kdroidfilter.platformtools.getCacheDir
 import io.github.kdroidfilter.platformtools.getOperatingSystem
 import io.github.kdroidfilter.platformtools.releasefetcher.config.client
 import io.github.kdroidfilter.platformtools.releasefetcher.github.model.Release
-
 import io.github.z4kn4fein.semver.toVersion
-import io.ktor.client.*
 import io.ktor.client.call.*
-import io.ktor.client.engine.cio.*
 import io.ktor.client.plugins.*
 import io.ktor.client.request.*
 import io.ktor.client.statement.*
 import io.ktor.http.*
-import io.ktor.utils.io.*
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
 import kotlinx.serialization.json.Json
-import java.io.File
 
 class GitHubReleaseFetcher(
     private val repoOwner: String,
@@ -34,12 +28,7 @@ class GitHubReleaseFetcher(
      */
     suspend fun getLatestRelease(): Release? = withContext(Dispatchers.IO) {
         try {
-            val response: HttpResponse = client.get("https://api.github.com/repos/$repoOwner/$repo/releases/latest") {
-                timeout {
-                    requestTimeoutMillis = 5_000
-                    socketTimeoutMillis = 5_000
-                }
-            }
+            val response: HttpResponse = client.get("https://api.github.com/repos/$repoOwner/$repo/releases/latest")
 
             if (response.status == HttpStatusCode.OK) {
                 val responseBody: String = response.body()
@@ -89,6 +78,5 @@ class GitHubReleaseFetcher(
         val asset = release.assets.firstOrNull { it.name.endsWith(fileType, ignoreCase = true) }
         return asset?.browser_download_url
     }
-
 
 }
