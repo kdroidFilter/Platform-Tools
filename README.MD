@@ -1,5 +1,3 @@
-### PlatformTools
-
 **PlatformTools** is a Kotlin Multiplatform library designed to provide platform-specific utilities and tools for managing operating systems, application installation, and release fetching seamlessly across various platforms. The library is modular and divided into three main components: core, appmanager, and releasefetcher.
 
 ---
@@ -8,19 +6,19 @@
 
 ### Core
 
-- **Platform Detection**  
+- **Platform Detection**\
   Identify the current platform or operating system, such as Windows, Mac, Linux, Android, iOS, JS, or WASM.
 
 ### AppManager (JVM and Android only)
 
-- **App Installation Management**  
+- **App Installation Management**\
   Check and request permissions for installing applications, install and uninstall apps, and manage application packages seamlessly.
 
 ### ReleaseFetcher
 
-- **Release Management**  
+- **Release Management**\
   Fetch the latest release information from GitHub repositories, check for updates, and download release files tailored to the platform.
-- **File Downloader**  
+- **File Downloader**\
   Easily download application files with progress tracking through the Downloader class.
 
 ---
@@ -30,16 +28,19 @@
 Add the following dependencies to your Kotlin Multiplatform project:
 
 ### Core
+
 ```kotlin
 implementation("io.github.kdroidfilter.platformtools:core:0.1.1")
 ```
 
 ### AppManager
+
 ```kotlin
 implementation("io.github.kdroidfilter.platformtools:appmanager:0.1.1")
 ```
 
 ### ReleaseFetcher
+
 ```kotlin
 implementation("io.github.kdroidfilter.platformtools:releasefetcher:0.1.1")
 ```
@@ -100,6 +101,12 @@ appInstaller.uninstallApp { success, message ->
 }
 ```
 
+On **Windows**, you can configure the installation of an app by setting `WindowsConfig.requireAdmin` to `true` or `false` depending on your needs. By default, this value is `true`. For example:
+
+```kotlin
+WindowsConfig.requireAdmin = false 
+```
+
 ### ReleaseFetcher
 
 The releasefetcher module simplifies release management with GitHub:
@@ -147,7 +154,29 @@ suspend fun downloadAppFile(downloadUrl: String) {
 
 ---
 
-## 🔄 License
+## 🛌 Additional Advice
+
+For Compose Desktop configuration under Windows, you can structure your settings as follows to optimize installation and ensure smooth operation:
+
+```kotlin
+compose.desktop {
+    application {
+        mainClass = "com.kdroid.sample.MainKt"
+        nativeDistributions {
+            targetFormats(TargetFormat.Msi, TargetFormat.Deb, TargetFormat.Pkg)
+            windows {
+                perUserInstall = true
+            }
+        }
+    }
+}
+```
+
+Setting `perUserInstall = true` avoids requiring admin rights during installation and enables background updates. **Note:** This feature is not feasible on Linux or Mac.
+
+---
+
+## 🛍️ License
 
 PlatformTools is licensed under the [MIT License](https://opensource.org/licenses/MIT). Feel free to use, modify, and distribute the library under the terms of the license.
 
