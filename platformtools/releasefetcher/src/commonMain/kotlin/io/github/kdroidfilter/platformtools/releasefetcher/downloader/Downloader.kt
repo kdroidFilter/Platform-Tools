@@ -16,8 +16,23 @@ private val logger = KotlinLogging.logger {}
 
 private const val BUFFER_SIZE = 2621440
 
+/**
+ * Downloader is responsible for handling file downloads from a given URL.
+ * This class provides functionality to asynchronously download files, report
+ * download progress, and handle errors that may occur during the download process.
+ */
 class Downloader {
 
+    /**
+     * Downloads an application file from the provided URL and tracks the download progress.
+     *
+     * @param downloadUrl The URL from which the application will be downloaded.
+     * @param onProgress A callback function reporting download progress percentage and the downloaded file (if available).
+     *                     The percentage is a `Double` ranging from 0.0 to 100.0, or -1.0 in case of errors.
+     *                     The `file` parameter is the local file being downloaded, or `null` during download progress updates.
+     * @return A `Boolean` indicating whether the download was successful.
+     *         Returns `true` if the download completes successfully, otherwise `false`.
+     */
     suspend fun downloadApp(
         downloadUrl: String,
         onProgress: (percentage: Double, file: File?) -> Unit

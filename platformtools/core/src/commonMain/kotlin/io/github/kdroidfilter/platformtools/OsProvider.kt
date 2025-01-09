@@ -1,30 +1,24 @@
 package io.github.kdroidfilter.platformtools
 
+
 /**
- * Represents the various operating systems a Kotlin application can run on.
+ * Represents a platform or operating system that the application can run on.
  *
- * This enumeration is typically used in multi-platform projects to determine
- * the target platform's operating system environment. The specific instance
- * can be retrieved using platform-specific implementations of the `getOperatingSystem`
- * function.
- *
- * Possible values:
- * - `WINDOWS`: Represents the Windows operating system.
- * - `MAC`: Represents the macOS operating system.
- * - `LINUX`: Represents Linux-based operating systems.
- * - `ANDROID`: Represents the Android operating system.
- * - `IOS`: Represents the iOS operating system.
- * - `JS`: Represents JavaScript environments.
- * - `WASMJS`: Represents WebAssembly environments executed via JavaScript.
- * - `UNKNOWN`: Represents an unrecognized or unsupported operating system.
+ * This enum is used to identify the current platform or operating system
+ * within the application, enabling platform-specific logic or optimizations.
  */
 enum class Platform {
     WINDOWS, MAC, LINUX, ANDROID, IOS, JS, WASMJS, UNKNOWN
 }
 
+
 /**
- * Determines and returns the current operating system on which the code is running.
+ * Determines the current platform or operating system that the application is running on.
  *
- * @return An instance of [Platform] representing the detected operating system.
+ * The function is expected to return a value from the `Platform` enum, which represents
+ * various known operating systems or platforms. This value can be used for enabling
+ * platform-specific logic or configurations within the application.
+ *
+ * @return The current platform as a value of the `Platform` enum.
  */
 expect fun getPlatform(): Platform

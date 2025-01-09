@@ -5,7 +5,7 @@ import io.ktor.client.engine.cio.*
 import io.ktor.client.plugins.*
 
 // Global Ktor client configuration
-val client = HttpClient(CIO) {
+internal val client = HttpClient(CIO) {
     followRedirects = true
 
     install(HttpTimeout) {

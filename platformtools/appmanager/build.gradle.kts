@@ -5,7 +5,6 @@ plugins {
     alias(libs.plugins.multiplatform)
     alias(libs.plugins.android.library)
     alias(libs.plugins.vannitktech.maven.publish)
-    alias(libs.plugins.dokka)
 }
 val libVersion : String by rootProject.extra
 
@@ -73,8 +72,8 @@ mavenPublishing {
 
     pom {
         name.set("PlatformTools AppManager")
-        description.set("A Kotlin Multiplatform library to manage platform-specific utilities and tools.")
-        inceptionYear.set("2025") // Change si la création du projet est plus ancienne.
+        description.set("Application manager module for PlatformTools, a Kotlin Library to install and update Desktop and Android Applications")
+        inceptionYear.set("2025")
         url.set("https://github.com/kdroidFilter/")
 
         licenses {

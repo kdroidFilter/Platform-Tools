@@ -8,12 +8,12 @@ import java.io.InputStreamReader
 object WindowsPrivilegeHelper {
 
     /**
-     * Vérifie si le processus est déjà exécuté avec des privilèges élevés (admin).
+     * Checks if the process is already running with elevated privileges (admin).
      */
     fun isProcessElevated(): Boolean {
         val hToken = WinNT.HANDLEByReference()
         try {
-            // Ouvrir le token du processus courant
+            // Open the token of the current process
             val success = Advapi32.INSTANCE.OpenProcessToken(
                 Kernel32.INSTANCE.GetCurrentProcess(),
                 WinNT.TOKEN_QUERY,
@@ -32,7 +32,7 @@ object WindowsPrivilegeHelper {
             )
             if (!result) return false
 
-            // Si TokenIsElevated != 0, alors le processus est en mode admin.
+            // If TokenIsElevated != 0, then the process is in admin mode.
             return elevation.TokenIsElevated != 0
         } finally {
             Kernel32.INSTANCE.CloseHandle(hToken.value)
@@ -40,14 +40,14 @@ object WindowsPrivilegeHelper {
     }
 
     /**
-     * Demande l'élévation (UAC) pour installer un MSI via msiexec.
-     * Attend la fin du processus msiexec et retourne le résultat via le callback.
+     * Requests elevation (UAC) to install an MSI via msiexec.
+     * Waits for the msiexec process to finish and returns the result via the callback.
      */
     private fun requestAdminPrivilegesForMsi(msiPath: String, onResult: (Boolean, String?) -> Unit) {
         val shellExecuteInfo = ShellAPI.SHELLEXECUTEINFO().apply {
             cbSize = size()
-            lpVerb = "runas" // Demande l'élévation (UAC)
-            lpFile = "msiexec" // Executable dans le PATH
+            lpVerb = "runas" // Requests elevation (UAC)
+            lpFile = "msiexec" // Executable in the PATH
             lpParameters = "/i \"$msiPath\" /quiet /l*v \"${File(msiPath).parentFile?.absolutePath}\\installation_log.txt\""
             nShow = WinUser.SW_SHOWNORMAL
             fMask = Shell32.SEE_MASK_NOCLOSEPROCESS
@@ -56,37 +56,37 @@ object WindowsPrivilegeHelper {
         val success = Shell32.INSTANCE.ShellExecuteEx(shellExecuteInfo)
         if (!success) {
             val errorCode = Kernel32.INSTANCE.GetLastError()
-            onResult(false, "Échec de ShellExecuteEx pour l’MSI. Code erreur : $errorCode")
+            onResult(false, "ShellExecuteEx failed for the MSI. Error code: $errorCode")
             return
         }
 
         val hProcess = shellExecuteInfo.hProcess
         if (hProcess == null) {
-            onResult(false, "Handle de processus nul après ShellExecuteEx.")
+            onResult(false, "Null process handle after ShellExecuteEx.")
             return
         }
 
         try {
-            // Attendre que le processus msiexec se termine
+            // Wait for the msiexec process to finish
             val waitResult = Kernel32.INSTANCE.WaitForSingleObject(hProcess, WinBase.INFINITE)
             if (waitResult != WinBase.WAIT_OBJECT_0) {
-                onResult(false, "Échec de l'attente du processus msiexec.")
+                onResult(false, "Failed to wait for the msiexec process.")
                 return
             }
 
-            // Obtenir le code de sortie de msiexec
+            // Get the exit code of msiexec
             val exitCode = IntByReference()
             val getExitSuccess = Kernel32.INSTANCE.GetExitCodeProcess(hProcess, exitCode)
             if (!getExitSuccess) {
                 val errorCode = Kernel32.INSTANCE.GetLastError()
-                onResult(false, "Échec de GetExitCodeProcess. Code erreur : $errorCode")
+                onResult(false, "GetExitCodeProcess failed. Error code: $errorCode")
                 return
             }
 
             if (exitCode.value == 0) {
                 onResult(true, null)
             } else {
-                onResult(false, "Échec de l'installation MSI avec le code de sortie : ${exitCode.value}")
+                onResult(false, "MSI installation failed with exit code: ${exitCode.value}")
             }
 
         } finally {
@@ -95,31 +95,31 @@ object WindowsPrivilegeHelper {
     }
 
     /**
-     * Installe un fichier MSI sous Windows.
-     * @param installerFile Le fichier MSI à installer.
-     * @param onResult Callback (succès: Boolean, messageErreur: String?).
-     * @param requireAdmin Indique si l'installation doit absolument se faire en mode admin.
+     * Installs an MSI file on Windows.
+     * @param installerFile The MSI file to install.
+     * @param onResult Callback (success: Boolean, errorMessage: String?).
+     * @param requireAdmin Indicates whether installation must be done in admin mode.
      */
     fun installOnWindows(
         installerFile: File,
         onResult: (Boolean, String?) -> Unit,
         requireAdmin: Boolean = false
     ) {
-        // 1. Vérifier si on demande explicitement des privilèges admin
+        // 1. Check if admin privileges are explicitly required
         if (requireAdmin && !isProcessElevated()) {
-            // Si on a besoin des droits admin et qu'on n'est pas en mode admin,
-            // on lance la demande d'élévation et on attend le résultat.
+            // If admin rights are required and we are not in admin mode,
+            // request elevation and wait for the result.
             requestAdminPrivilegesForMsi(installerFile.absolutePath, onResult)
             return
         }
 
-        // 2. Vérifier la validité du fichier
+        // 2. Validate the file
         if (!installerFile.exists() || !installerFile.extension.equals("msi", ignoreCase = true)) {
-            onResult(false, "Fichier introuvable ou extension incorrecte (MSI attendu).")
+            onResult(false, "File not found or incorrect extension (MSI expected).")
             return
         }
 
-        // 3. Préparer la commande msiexec
+        // 3. Prepare the msiexec command
         val command = listOf(
             "msiexec",
             "/i", installerFile.absolutePath,
@@ -128,31 +128,31 @@ object WindowsPrivilegeHelper {
         )
 
         try {
-            // 4. Construire le ProcessBuilder
+            // 4. Build the ProcessBuilder
             val processBuilder = ProcessBuilder(command).apply {
                 redirectErrorStream(true)
             }
 
-            // 5. Lancer le processus msiexec
+            // 5. Start the msiexec process
             val process = processBuilder.start()
             val exitCode = process.waitFor()
 
-            // 6. Lire le flux de sortie
+            // 6. Read the output stream
             val output = InputStreamReader(process.inputStream).readText().trim()
 
-            // 7. Vérifier le code de sortie
+            // 7. Check the exit code
             if (exitCode == 0) {
                 onResult(true, null)
             } else {
-                val messageErreur = """
-                    Échec de l'installation (code de retour : $exitCode).
-                    Sortie :
+                val errorMessage = """
+                    Installation failed (return code: $exitCode).
+                    Output:
                     $output
                 """.trimIndent()
-                onResult(false, messageErreur)
+                onResult(false, errorMessage)
             }
         } catch (e: Exception) {
-            onResult(false, "Exception lors de l'installation : ${e.message}")
+            onResult(false, "Exception during installation: ${e.message}")
         }
     }
 }

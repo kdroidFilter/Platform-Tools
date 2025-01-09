@@ -1,16 +1,14 @@
 import com.vanniktech.maven.publish.SonatypeHost
-import org.jetbrains.dokka.gradle.DokkaTask
 
 plugins {
     alias(libs.plugins.multiplatform)
     alias(libs.plugins.android.library)
     alias(libs.plugins.vannitktech.maven.publish)
-    alias(libs.plugins.dokka)
 }
 
 val libVersion : String by rootProject.extra
 
-group = "io.github.kdroidfilter.platformtools"
+group = "io.github.kdroidfilter.platformtools.core"
 version = libVersion
 
 kotlin {
@@ -101,7 +99,7 @@ kotlin {
 }
 
 android {
-    namespace = "io.github.kdroidfilter.platformtools"
+    namespace = "io.github.kdroidfilter.platformtools.core"
     compileSdk = 35
 
     defaultConfig {
@@ -112,13 +110,13 @@ android {
 mavenPublishing {
     coordinates(
         groupId = "io.github.kdroidfilter",
-        artifactId = "platformtools",
+        artifactId = "platformtools.core",
         version = version.toString()
     )
 
     pom {
-        name.set("PlatformTools")
-        description.set("A Kotlin Multiplatform library to manage platform-specific utilities and tools.")
+        name.set("PlatformTools Core")
+        description.set(" Core of PlatformTools, a Kotlin Multiplatform library to manage platform-specific utilities and tools.")
         inceptionYear.set("2025") // Change si la création du projet est plus ancienne.
         url.set("https://github.com/kdroidFilter/")
 
@@ -149,7 +147,3 @@ mavenPublishing {
     signAllPublications()
 }
 
-tasks.withType<DokkaTask>().configureEach {
-    moduleName.set("Platforms Tools")
-    offlineMode.set(true)
-}
