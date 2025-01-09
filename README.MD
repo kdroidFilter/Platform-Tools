@@ -20,6 +20,10 @@
   Fetch the latest release information from GitHub repositories, check for updates, and download release files tailored to the platform.
 - **File Downloader**\
   Easily download application files with progress tracking through the Downloader class.
+- **Update Checker**\
+  Includes a function to check for updates (`checkForUpdate`). This function determines whether a newer version of the application is available and provides the new version details and changelog if an update is needed.
+- **Platform-specific Download Link Retrieval**\
+  Contains a function (`getDownloadLinkForPlatform`) to retrieve the download link for a release asset suitable for the current platform (e.g., APK for Android, MSI for Windows).
 
 ---
 
@@ -128,6 +132,12 @@ val downloadLink = releaseFetcher.getDownloadLinkForPlatform(release!!)
 println("Download link: $downloadLink")
 ```
 
+#### How GitHub Release Fetcher Works
+
+- **Latest Release Retrieval**: The `GitHubReleaseFetcher` fetches the latest release from the specified GitHub repository. It checks the tag name of the release to extract the version number.
+- **Version Comparison**: The current application version is compared with the latest release version. If the latest version is greater, it signals that an update is available.
+- **Platform-specific Asset Search**: Based on the platform (e.g., Android, Windows, Linux, Mac), it identifies assets in the release matching the appropriate file extension (e.g., `.apk` for Android, `.msi` for Windows) and retrieves the download link.
+
 #### Downloader
 
 The Downloader class provides functionality for downloading application files with progress tracking:
@@ -176,7 +186,7 @@ Setting `perUserInstall = true` avoids requiring admin rights during installatio
 
 ---
 
-## 🛍️ License
+## 🛒 License
 
 PlatformTools is licensed under the [MIT License](https://opensource.org/licenses/MIT). Feel free to use, modify, and distribute the library under the terms of the license.
 
