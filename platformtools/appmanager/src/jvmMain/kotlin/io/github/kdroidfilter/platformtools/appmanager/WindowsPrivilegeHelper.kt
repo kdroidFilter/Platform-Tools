@@ -5,6 +5,20 @@ import com.sun.jna.ptr.IntByReference
 import java.io.File
 import java.io.InputStreamReader
 
+/**
+ * Object containing configuration settings specific to Windows platform.
+ *
+ * @property requireAdmin Indicates whether administrator privileges are required
+ *                        for certain operations on the Windows platform. Defaults to `true`.
+ */
+object WindowsConfig {
+    var requireAdmin: Boolean = true
+}
+
+
+/**
+ * Utility object that offers functions to handle Windows-specific privilege and process management tasks.
+ */
 object WindowsPrivilegeHelper {
 
     /**
@@ -102,9 +116,9 @@ object WindowsPrivilegeHelper {
      */
     fun installOnWindows(
         installerFile: File,
-        onResult: (Boolean, String?) -> Unit,
-        requireAdmin: Boolean = false
+        onResult: (Boolean, String?) -> Unit
     ) {
+        val requireAdmin = WindowsConfig.requireAdmin
         // 1. Check if admin privileges are explicitly required
         if (requireAdmin && !isProcessElevated()) {
             // If admin rights are required and we are not in admin mode,
