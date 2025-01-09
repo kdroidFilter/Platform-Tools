@@ -34,19 +34,19 @@ Add the following dependencies to your Kotlin Multiplatform project:
 ### Core
 
 ```kotlin
-implementation("io.github.kdroidfilter.platformtools:core:0.1.1")
+implementation("io.github.kdroidfilter.platformtools:core:0.1.2")
 ```
 
 ### AppManager
 
 ```kotlin
-implementation("io.github.kdroidfilter.platformtools:appmanager:0.1.1")
+implementation("io.github.kdroidfilter.platformtools:appmanager:0.1.2")
 ```
 
 ### ReleaseFetcher
 
 ```kotlin
-implementation("io.github.kdroidfilter.platformtools:releasefetcher:0.1.1")
+implementation("io.github.kdroidfilter.platformtools:releasefetcher:0.1.2")
 ```
 
 ---
