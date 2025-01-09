@@ -8,6 +8,7 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
 import io.github.kdroidfilter.platformtools.appmanager.getAppInstaller
+import io.github.kdroidfilter.platformtools.appmanager.restartApplication
 import io.github.kdroidfilter.platformtools.getAppVersion
 import io.github.kdroidfilter.platformtools.getPlatform
 import io.github.kdroidfilter.platformtools.releasefetcher.downloader.Downloader
@@ -70,6 +71,12 @@ fun UpdateCheckerUI(fetcher: GitHubReleaseFetcher) {
             .padding(16.dp),
         horizontalAlignment = Alignment.CenterHorizontally
     ) {
+        Button({
+            restartApplication()
+        }){
+            Text("Restart App")
+        }
+
         Text(
             text = "Application Update",
             style = MaterialTheme.typography.headlineMedium,
