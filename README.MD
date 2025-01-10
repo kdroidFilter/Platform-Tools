@@ -10,6 +10,8 @@
 
 - **Platform Detection**\
   Identify the current platform or operating system, such as Windows, Mac, Linux, Android, iOS, JS, or WASM.
+- **Platform-Specific Utilities**\
+  Provides utility functions exclusive to Android and JVM:
 
 ### AppManager (JVM and Android only)
 
@@ -72,6 +74,30 @@ val operatingSystem = getOperatingSystem()
 println("Current operating system: $operatingSystem")
 ```
 
+Additional platform-specific functions available for Android and JVM:
+
+```kotlin
+expect fun getCacheDir(): File
+expect fun getAppVersion(): String
+```
+
+#### Example Usage
+
+```kotlin
+// Retrieve the cache directory
+val cacheDir = getCacheDir()
+println("Cache directory path: ${cacheDir.absolutePath}")
+
+// Retrieve the current app version
+val appVersion = getAppVersion()
+println("Current app version: $appVersion")
+
+// Android-specific: Retrieve another app's version
+val packageName = "com.example.otherapp"
+val otherAppVersion = getAppVersion(packageName)
+println("Other app version: $otherAppVersion")
+```
+
 ### AppManager (JVM and Android only)
 
 The appmanager module provides an interface for managing application installation and uninstallation. For each platform, the required file format is as follows:
@@ -97,29 +123,29 @@ appInstaller.requestInstallPackagesPermission()
 // Install an application
 val appFile = File("/path/to/app.apk")
 appInstaller.installApp(appFile) { success, message ->
-    if (success) {
-        println("Installation successful")
-    } else {
-        println("Installation failed: $message")
-    }
+  if (success) {
+    println("Installation successful")
+  } else {
+    println("Installation failed: $message")
+  }
 }
 
 // Uninstall an app by package name (Android only)
 appInstaller.uninstallApp("com.example.app") { success, message ->
-    if (success) {
-        println("Uninstallation started: $message")
-    } else {
-        println("Failed to uninstall: $message")
-    }
+  if (success) {
+    println("Uninstallation started: $message")
+  } else {
+    println("Failed to uninstall: $message")
+  }
 }
 
 // Uninstall the current app (Android only)
 appInstaller.uninstallApp { success, message ->
-    if (success) {
-        println("Uninstallation started: $message")
-    } else {
-        println("Failed to uninstall: $message")
-    }
+  if (success) {
+    println("Uninstallation started: $message")
+  } else {
+    println("Failed to uninstall: $message")
+  }
 }
 ```
 
@@ -140,8 +166,8 @@ val releaseFetcher = GitHubReleaseFetcher(owner = "owner", repo = "repo")
 
 // Check for updates
 releaseFetcher.checkForUpdate { latestVersion, changelog ->
-    println("New version available: $latestVersion")
-    println("Changelog: $changelog")
+  println("New version available: $latestVersion")
+  println("Changelog: $changelog")
 }
 
 // Fetch download link for the current platform
@@ -160,23 +186,23 @@ import io.github.kdroidfilter.platformtools.releasefetcher.Downloader
 val downloader = Downloader()
 
 suspend fun downloadAppFile(downloadUrl: String) {
-    downloader.downloadApp(downloadUrl) { percentage, file ->
-        if (percentage >= 0) {
-            println("Download progress: $percentage%")
-        } else {
-            println("Download failed")
-        }
-
-        file?.let {
-            println("Downloaded file: ${it.absolutePath}")
-        }
+  downloader.downloadApp(downloadUrl) { percentage, file ->
+    if (percentage >= 0) {
+      println("Download progress: $percentage%")
+    } else {
+      println("Download failed")
     }
+
+    file?.let {
+      println("Downloaded file: ${it.absolutePath}")
+    }
+  }
 }
 ```
 
 ---
 
-## 🛌 Additional Advice
+## 📄 Additional Advice
 
 For Compose Desktop configuration under Windows, you can structure your settings as follows to optimize installation and ensure smooth operation:
 
@@ -198,7 +224,7 @@ Setting `perUserInstall = true` avoids requiring admin rights during installatio
 
 ---
 
-## 🛍️ License
+## 🛒 License
 
 PlatformTools is licensed under the [MIT License](https://opensource.org/licenses/MIT). Feel free to use, modify, and distribute the library under the terms of the license.
 
