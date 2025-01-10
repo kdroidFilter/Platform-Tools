@@ -1,3 +1,5 @@
+## PlatformTools
+
 **PlatformTools** is a Kotlin Multiplatform library designed to provide platform-specific utilities and tools for managing operating systems, application installation, and release fetching seamlessly across various platforms. The library is modular and divided into three main components: core, appmanager, and releasefetcher.
 
 ---
@@ -57,17 +59,17 @@ implementation("io.github.kdroidfilter:platformtools.releasefetcher:0.1.4")
 
 The main goal of this library is to serve as a versatile toolkit for implementing platform-specific utilities. While this approach might seem contrary to the expect/actual pattern of Kotlin Multiplatform, PlatformTools fills a specific gap:
 
-- It enables operating system detection within the JVM, which is not natively supported by KMP.
+- It enables operating system detection for multiplatform environments such as JVM, WASM, or JS, where direct OS detection is not always straightforward.
 - It allows OS detection in common code for minor functionalities where embedding such logic can be beneficial.
 
 The core module provides tools for platform detection, including support for enums to represent different platforms:
 
 ```kotlin
 import io.github.kdroidfilter.platformtools.Platform
-import io.github.kdroidfilter.platformtools.getPlatform
+import io.github.kdroidfilter.platformtools.getOperatingSystem
 
-val platform = getPlatform()
-println("Current platform: $platform")
+val operatingSystem = getOperatingSystem()
+println("Current operating system: $operatingSystem")
 ```
 
 ### AppManager (JVM and Android only)
@@ -79,26 +81,42 @@ The appmanager module provides an interface for managing application installatio
 - **Linux**: DEB file
 - **Mac**: PKG file
 
-On Android, it is also possible to uninstall applications:
-
 ```kotlin
 import io.github.kdroidfilter.platformtools.appmanager.getAppInstaller
+import java.io.File
 
 val appInstaller = getAppInstaller()
 
-// Uninstall an app by package name
+// Check if the app can request permission to install packages
+val canRequest = appInstaller.canRequestInstallPackages()
+println("Can request install packages permission: $canRequest")
+
+// Request permission to install packages
+appInstaller.requestInstallPackagesPermission()
+
+// Install an application
+val appFile = File("/path/to/app.apk")
+appInstaller.installApp(appFile) { success, message ->
+    if (success) {
+        println("Installation successful")
+    } else {
+        println("Installation failed: $message")
+    }
+}
+
+// Uninstall an app by package name (Android only)
 appInstaller.uninstallApp("com.example.app") { success, message ->
     if (success) {
-        println("Uninstall started: $message")
+        println("Uninstallation started: $message")
     } else {
         println("Failed to uninstall: $message")
     }
 }
 
-// Uninstall the current app
+// Uninstall the current app (Android only)
 appInstaller.uninstallApp { success, message ->
     if (success) {
-        println("Uninstall started: $message")
+        println("Uninstallation started: $message")
     } else {
         println("Failed to uninstall: $message")
     }
@@ -108,7 +126,7 @@ appInstaller.uninstallApp { success, message ->
 On **Windows**, you can configure the installation of an app by setting `WindowsConfig.requireAdmin` to `true` or `false` depending on your needs. By default, this value is `true`. For example:
 
 ```kotlin
-WindowsConfig.requireAdmin = false 
+WindowsConfig.requireAdmin = false
 ```
 
 ### ReleaseFetcher
@@ -131,12 +149,6 @@ val release = releaseFetcher.getLatestRelease()
 val downloadLink = releaseFetcher.getDownloadLinkForPlatform(release!!)
 println("Download link: $downloadLink")
 ```
-
-#### How GitHub Release Fetcher Works
-
-- **Latest Release Retrieval**: The `GitHubReleaseFetcher` fetches the latest release from the specified GitHub repository. It checks the tag name of the release to extract the version number.
-- **Version Comparison**: The current application version is compared with the latest release version. If the latest version is greater, it signals that an update is available.
-- **Platform-specific Asset Search**: Based on the platform (e.g., Android, Windows, Linux, Mac), it identifies assets in the release matching the appropriate file extension (e.g., `.apk` for Android, `.msi` for Windows) and retrieves the download link.
 
 #### Downloader
 
@@ -170,15 +182,15 @@ For Compose Desktop configuration under Windows, you can structure your settings
 
 ```kotlin
 compose.desktop {
-    application {
-        mainClass = "com.kdroid.sample.MainKt"
-        nativeDistributions {
-            targetFormats(TargetFormat.Msi, TargetFormat.Deb, TargetFormat.Pkg)
-            windows {
-                perUserInstall = true
-            }
-        }
+  application {
+    mainClass = "com.kdroid.sample.MainKt"
+    nativeDistributions {
+      targetFormats(TargetFormat.Msi, TargetFormat.Deb, TargetFormat.Pkg)
+      windows {
+        perUserInstall = true
+      }
     }
+  }
 }
 ```
 
@@ -186,7 +198,7 @@ Setting `perUserInstall = true` avoids requiring admin rights during installatio
 
 ---
 
-## 🛒 License
+## 🛍️ License
 
 PlatformTools is licensed under the [MIT License](https://opensource.org/licenses/MIT). Feel free to use, modify, and distribute the library under the terms of the license.
 
@@ -195,4 +207,10 @@ PlatformTools is licensed under the [MIT License](https://opensource.org/license
 ## 🤝 Contributions
 
 Contributions are welcome! If you want to improve this library, please feel free to submit a pull request or open an issue.
+
+---
+
+## 📢 Demo Application
+
+A demo application with an integrated updater using this library is available [here](https://github.com/kdroidFilter/AppwithAutoUpdater).
 
