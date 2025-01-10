@@ -1,24 +1,30 @@
 package io.github.kdroidfilter.platformtools
 
 
+
 /**
- * Represents a platform or operating system that the application can run on.
+ * Represents the operating systems a device or environment can run.
  *
- * This enum is used to identify the current platform or operating system
- * within the application, enabling platform-specific logic or optimizations.
+ * This enum class is used to identify the underlying platform or operating system
+ * being utilized by an application, and it is commonly utilized in platform-specific logic.
+ *
+ * Enum Constants:
+ * - `WINDOWS`: Represents the Microsoft Windows operating system.
+ * - `MACOS`: Represents the macOS operating system from Apple.
+ * - `LINUX`: Represents Linux-based operating systems.
+ * - `ANDROID`: Represents the Android operating system.
+ * - `IOS`: Represents the iOS operating system from Apple.
+ * - `UNKNOWN`: Represents an unrecognized or unsupported operating system.
  */
-enum class Platform {
-    WINDOWS, MAC, LINUX, ANDROID, IOS, JS, WASMJS, UNKNOWN
+enum class OperatingSystem {
+    WINDOWS, MACOS, LINUX, ANDROID, IOS, UNKNOWN
 }
 
 
+
 /**
- * Determines the current platform or operating system that the application is running on.
+ * Determines the operating system on which the application is currently running.
  *
- * The function is expected to return a value from the `Platform` enum, which represents
- * various known operating systems or platforms. This value can be used for enabling
- * platform-specific logic or configurations within the application.
- *
- * @return The current platform as a value of the `Platform` enum.
+ * @return An instance of [OperatingSystem] representing the current platform or operating system.
  */
-expect fun getPlatform(): Platform
+expect fun getOperatingSystem(): OperatingSystem

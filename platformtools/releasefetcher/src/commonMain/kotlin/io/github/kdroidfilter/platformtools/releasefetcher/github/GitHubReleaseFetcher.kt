@@ -1,8 +1,8 @@
 package io.github.kdroidfilter.platformtools.releasefetcher.github
 
-import io.github.kdroidfilter.platformtools.Platform
+import io.github.kdroidfilter.platformtools.OperatingSystem
 import io.github.kdroidfilter.platformtools.getAppVersion
-import io.github.kdroidfilter.platformtools.getPlatform
+import io.github.kdroidfilter.platformtools.getOperatingSystem
 import io.github.kdroidfilter.platformtools.releasefetcher.config.client
 import io.github.kdroidfilter.platformtools.releasefetcher.github.model.Release
 import io.github.z4kn4fein.semver.toVersion
@@ -63,14 +63,14 @@ class GitHubReleaseFetcher(
      * Returns the download link suitable for the current platform.
      */
     fun getDownloadLinkForPlatform(release: Release): String? {
-        val platformFileTypes = mapOf(
-            Platform.ANDROID to ".apk",
-            Platform.WINDOWS to ".msi",
-            Platform.LINUX to ".deb",
-            Platform.MAC to ".dmg"
+        val operatingSystemFileTypes = mapOf(
+            OperatingSystem.ANDROID to ".apk",
+            OperatingSystem.WINDOWS to ".msi",
+            OperatingSystem.LINUX to ".deb",
+            OperatingSystem.MACOS to ".dmg"
         )
 
-        val fileType = platformFileTypes[getPlatform()] ?: return null
+        val fileType = operatingSystemFileTypes[getOperatingSystem()] ?: return null
 
         // Find the corresponding asset
         val asset = release.assets.firstOrNull { it.name.endsWith(fileType, ignoreCase = true) }

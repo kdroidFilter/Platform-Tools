@@ -1,5 +1,5 @@
-import io.github.kdroidfilter.platformtools.getPlatform
+import io.github.kdroidfilter.platformtools.getOperatingSystem
 
 fun main() {
-    println("The Operating System is " + getPlatform().name.lowercase().replaceFirstChar { it.uppercase()})
+    println("The Operating System is " + getOperatingSystem().name.lowercase().replaceFirstChar { it.uppercase()})
 }

@@ -10,7 +10,7 @@ import androidx.compose.ui.unit.dp
 import io.github.kdroidfilter.platformtools.appmanager.getAppInstaller
 import io.github.kdroidfilter.platformtools.appmanager.restartApplication
 import io.github.kdroidfilter.platformtools.getAppVersion
-import io.github.kdroidfilter.platformtools.getPlatform
+import io.github.kdroidfilter.platformtools.getOperatingSystem
 import io.github.kdroidfilter.platformtools.releasefetcher.downloader.Downloader
 import io.github.kdroidfilter.platformtools.releasefetcher.github.GitHubReleaseFetcher
 import kotlinx.coroutines.CoroutineScope
@@ -31,7 +31,7 @@ fun App() {
             UpdateCheckerUI(GitHubReleaseFetcher(owner = "kdroidfilter", repo = "KmpRealTimeLogger"))
 
             Text(
-                "Platform: " + getPlatform().name.lowercase().replaceFirstChar { it.uppercase() },
+                "Platform: " + getOperatingSystem().name.lowercase().replaceFirstChar { it.uppercase() },
                 style = MaterialTheme.typography.bodyLarge,
                 color = MaterialTheme.colorScheme.onBackground
             )
