@@ -11,6 +11,7 @@ kotlinxCoroutinesCore = "1.10.1"
 core = "1.15.0"
 activityKtx = "1.9.3"
 ktor = "3.0.3"
+navigationCompose = "2.8.0-alpha11"
 slf4jSimple = "2.0.16"
 
 
@@ -30,6 +31,7 @@ ktor-client-core = { module = "io.ktor:ktor-client-core", version.ref = "ktor" }
 ktor-client-content-negotiation = { module = "io.ktor:ktor-client-content-negotiation", version.ref = "ktor" }
 ktor-client-serialization = { module = "io.ktor:ktor-client-serialization", version.ref = "ktor" }
 ktor-client-logging = { module = "io.ktor:ktor-client-logging", version.ref = "ktor" }
+navigation-compose = { module = "org.jetbrains.androidx.navigation:navigation-compose", version.ref = "navigationCompose" }
 semver = { module = "io.github.z4kn4fein:semver", version = "2.0.0" }
 slf4j-simple = { module = "org.slf4j:slf4j-simple", version.ref = "slf4jSimple" }
 

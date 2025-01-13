@@ -3,41 +3,14 @@ package sample.app
 import android.os.Bundle
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
-import androidx.compose.foundation.layout.Box
-import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.fillMaxSize
-import androidx.compose.foundation.layout.fillMaxWidth
-import androidx.compose.foundation.layout.padding
-import androidx.compose.material3.ExperimentalMaterial3Api
-import androidx.compose.material3.Scaffold
-import androidx.compose.material3.ScrollableTabRow
-import androidx.compose.material3.Tab
-import androidx.compose.material3.Text
-import androidx.compose.material3.TopAppBar
-import androidx.compose.runtime.Composable
-import androidx.compose.runtime.getValue
-import androidx.compose.runtime.mutableStateOf
-import androidx.compose.runtime.remember
-import androidx.compose.runtime.setValue
-import androidx.compose.ui.Modifier
-import androidx.compose.ui.unit.dp
-import sample.app.permissions.BackgroundLocationPermissionSample
-import sample.app.permissions.BluetoothPermissionSample
-import sample.app.permissions.CameraPermissionSample
-import sample.app.permissions.ContactsPermissionSample
-import sample.app.permissions.InstallPermissionSample
-import sample.app.permissions.LocationPermissionSample
-import sample.app.permissions.NotificationPermissionSample
-import sample.app.permissions.OverlayPermissionSample
-import sample.app.permissions.ReadExternalStoragePermissionSample
-import sample.app.permissions.RecordAudioPermissionSample
+import sample.app.permissionHandler.NotificationPermissionSample
+import sample.app.permissions.*
 
 class AppActivity : ComponentActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContent {
-            val screens = listOf(
-                PermissionScreen("Common App", {App()}),
+            val permissionScreenList = listOf(
                 PermissionScreen("Notification", { NotificationPermissionSample() }),
                 PermissionScreen("Installation", { InstallPermissionSample() }),
                 PermissionScreen("Overlay", { OverlayPermissionSample() }),
@@ -50,7 +23,7 @@ class AppActivity : ComponentActivity() {
                 PermissionScreen("Bluetooth", { BluetoothPermissionSample() }),
 
                 )
-            PermissionExamplesApp(screens)
+            App(permissionScreenList)
         }
     }
 }

@@ -22,6 +22,7 @@ kotlin {
             implementation(compose.ui)
             implementation(compose.components.resources)
             implementation(compose.components.uiToolingPreview)
+            implementation(libs.navigation.compose)
             implementation(project(":platformtools:core"))
             implementation(project(":platformtools:appmanager"))
             implementation(project(":platformtools:releasefetcher"))

@@ -1,12 +1,27 @@
-package sample.app.permissions
+package sample.app.permissionHandler
 
-import android.widget.Toast
-import androidx.compose.foundation.layout.*
-import androidx.compose.material3.*
-import androidx.compose.runtime.*
+import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.padding
+import androidx.compose.material3.Button
+import androidx.compose.material3.ExperimentalMaterial3Api
+import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.Scaffold
+import androidx.compose.material3.SnackbarHost
+import androidx.compose.material3.SnackbarHostState
+import androidx.compose.material3.Text
+import androidx.compose.material3.TopAppBar
+import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.unit.dp
 import io.github.kdroidfilter.platformtools.permissionhandler.hasNotificationPermission
 import io.github.kdroidfilter.platformtools.permissionhandler.requestNotificationPermission
@@ -14,12 +29,18 @@ import io.github.kdroidfilter.platformtools.permissionhandler.requestNotificatio
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun NotificationPermissionSample() {
-    val context = LocalContext.current
     var permissionGranted by remember { mutableStateOf(hasNotificationPermission()) }
+    var showSnackbar by remember { mutableStateOf(false) }
+    var snackbarMessage by remember { mutableStateOf("") }
+
+    val snackbarHostState = remember { SnackbarHostState() }
 
     Scaffold(
         topBar = {
             TopAppBar(title = { Text("Notification Permissions") })
+        },
+        snackbarHost = {
+            SnackbarHost(hostState = snackbarHostState)
         },
         content = { padding ->
             Box(
@@ -40,11 +61,13 @@ fun NotificationPermissionSample() {
                                 requestNotificationPermission(
                                     onGranted = {
                                         permissionGranted = true
-                                        Toast.makeText(context, "Permission granted", Toast.LENGTH_SHORT).show()
+                                        snackbarMessage = "Permission granted ✅"
+                                        showSnackbar = true
                                     },
                                     onDenied = {
                                         permissionGranted = false
-                                        Toast.makeText(context, "Permission denied", Toast.LENGTH_SHORT).show()
+                                        snackbarMessage = "Permission denied 🚫"
+                                        showSnackbar = true
                                     }
                                 )
                             }
@@ -56,5 +79,11 @@ fun NotificationPermissionSample() {
             }
         }
     )
-}
 
+    if (showSnackbar) {
+        LaunchedEffect(snackbarMessage) {
+            snackbarHostState.showSnackbar(snackbarMessage)
+            showSnackbar = false
+        }
+    }
+}
