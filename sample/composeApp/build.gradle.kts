@@ -25,6 +25,7 @@ kotlin {
             implementation(project(":platformtools:core"))
             implementation(project(":platformtools:appmanager"))
             implementation(project(":platformtools:releasefetcher"))
+            implementation(project(":platformtools:permissionhandler"))
         }
 
         androidMain.dependencies {

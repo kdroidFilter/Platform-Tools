@@ -31,6 +31,8 @@ kotlin {
             implementation(kotlin("test"))
         }
         androidMain.dependencies {
+            implementation(libs.androidx.core)
+            implementation(libs.androidx.activity.ktx)
             implementation(libs.androidcontextprovider)
 
         }
