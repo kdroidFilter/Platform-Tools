@@ -1,4 +1,4 @@
-package sample.app
+package sample.app.permissions
 
 import android.widget.Toast
 import androidx.compose.foundation.layout.*

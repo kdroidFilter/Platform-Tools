@@ -17,7 +17,9 @@ kotlin {
     androidTarget { publishLibraryVariants("release") }
     jvm()
     js { browser() }
-    wasmJs { browser() }
+    wasmJs {
+        browser()
+    }
     iosX64()
     iosArm64()
     iosSimulatorArm64()
@@ -25,6 +27,7 @@ kotlin {
 
     sourceSets {
         commonMain.dependencies {
+            implementation(libs.kotlinx.coroutines.core)
         }
 
         commonTest.dependencies {
@@ -34,6 +37,10 @@ kotlin {
             implementation(libs.androidx.core)
             implementation(libs.androidx.activity.ktx)
             implementation(libs.androidcontextprovider)
+
+        }
+        wasmJsMain.dependencies {
+            implementation("org.jetbrains.kotlinx:kotlinx-browser-wasm-js:0.3")
 
         }
 

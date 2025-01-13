@@ -21,6 +21,12 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
+import sample.app.permissions.BackgroundLocationPermissionSample
+import sample.app.permissions.CameraPermissionSample
+import sample.app.permissions.InstallPermissionSample
+import sample.app.permissions.LocationPermissionSample
+import sample.app.permissions.NotificationPermissionSample
+import sample.app.permissions.OverlayPermissionSample
 
 class AppActivity : ComponentActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -41,7 +47,10 @@ fun PermissionExamplesApp() {
         PermissionScreen("Installation", { InstallPermissionSample() }),
         PermissionScreen("Overlay", { OverlayPermissionSample() }),
         PermissionScreen("Location", { LocationPermissionSample() }),
-    )
+        PermissionScreen("Background Location", { BackgroundLocationPermissionSample() }),
+        PermissionScreen("Camera", { CameraPermissionSample() }),
+
+        )
     var currentScreenIndex by remember { mutableStateOf(0) }
 
     Scaffold(

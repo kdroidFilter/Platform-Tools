@@ -14,23 +14,26 @@ import io.github.kdroidfilter.platformtools.permissionhandler.hasOverlayPermissi
 import io.github.kdroidfilter.platformtools.permissionhandler.permission.PermissionCallbackManager
 
 /**
- * Activity for handling runtime permission requests, specifically for notification permissions.
+ * Activity for handling runtime permission requests, specifically for
+ * notification permissions.
  *
- * This class is used internally to request permissions from the user. It implements the
- * necessary logic to handle the results of permission requests and trigger corresponding
- * callbacks. It operates in conjunction with the `PermissionCallbackManager` to manage
- * callbacks for granted or denied permissions.
+ * This class is used internally to request permissions from the user.
+ * It implements the necessary logic to handle the results of permission
+ * requests and trigger corresponding callbacks. It operates in conjunction
+ * with the `PermissionCallbackManager` to manage callbacks for granted or
+ * denied permissions.
  *
- * The activity finishes its execution as soon as the permission outcome is resolved
- * to reduce visibility and user interaction.
+ * The activity finishes its execution as soon as the permission outcome is
+ * resolved to reduce visibility and user interaction.
  *
  * Key functionalities:
- * - Requests the `POST_NOTIFICATIONS` permission on devices running Android 13 (API level 33)
- *   or higher.
- * - Handles permission results and invokes the appropriate callback functions.
+ * - Requests the `POST_NOTIFICATIONS` permission on devices running
+ *   Android 13 (API level 33) or higher.
+ * - Handles permission results and invokes the appropriate callback
+ *   functions.
  *
- * Usage of this class is designed to be internal to the application; it should not
- * be instantiated directly by developers.
+ * Usage of this class is designed to be internal to the application; it
+ * should not be instantiated directly by developers.
  */
 internal class PermissionActivity : Activity() {
 
@@ -50,6 +53,12 @@ internal class PermissionActivity : Activity() {
         const val REQUEST_CODE_LOCATION = 1004
         const val REQUEST_TYPE_LOCATION = "location"
         const val EXTRA_PRECISE_LOCATION = "extra_precise_location"
+
+        const val REQUEST_CODE_BACKGROUND_LOCATION = 1005
+        const val REQUEST_TYPE_BACKGROUND_LOCATION = "background_location"
+
+        const val REQUEST_CODE_CAMERA = 1006
+        const val REQUEST_TYPE_CAMERA = "camera"
     }
 
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -109,6 +118,31 @@ internal class PermissionActivity : Activity() {
                 }
             }
 
+            REQUEST_TYPE_BACKGROUND_LOCATION -> {
+                if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q) {
+                    requestPermissions(
+                        arrayOf(Manifest.permission.ACCESS_BACKGROUND_LOCATION),
+                        REQUEST_CODE_BACKGROUND_LOCATION
+                    )
+                } else {
+                    // ACCESS_BACKGROUND_LOCATION is not required below Q
+                    val callbacks = PermissionCallbackManager.getCallbacks(requestId)
+                    callbacks?.first?.invoke()
+                    PermissionCallbackManager.unregisterCallbacks(requestId)
+                }
+            }
+
+            REQUEST_TYPE_CAMERA -> {
+                if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
+                    requestPermissions(
+                        arrayOf(Manifest.permission.CAMERA),
+                        REQUEST_CODE_CAMERA
+                    )
+                } else {
+                    finish()
+                }
+            }
+
             else -> {
                 Log.e("PermissionActivity", "Unsupported request type: $requestType")
                 finish()
@@ -152,19 +186,30 @@ internal class PermissionActivity : Activity() {
     override fun onRequestPermissionsResult(
         requestCode: Int,
         permissions: Array<out String>,
-        grantResults: IntArray
+        grantResults: IntArray,
     ) {
         super.onRequestPermissionsResult(requestCode, permissions, grantResults)
 
         val requestId = intent.getIntExtra(EXTRA_REQUEST_ID, -1)
-        if (requestCode in arrayOf(REQUEST_CODE_NOTIFICATIONS, REQUEST_CODE_LOCATION) && requestId != -1) {
-            val callbacks = PermissionCallbackManager.getCallbacks(requestId)
-            if (grantResults.isNotEmpty() && grantResults[0] == PackageManager.PERMISSION_GRANTED) {
-                callbacks?.first?.invoke()
-            } else {
-                callbacks?.second?.invoke()
+        if (requestId == -1) {
+            finish()
+            return
+        }
+
+        when (requestCode) {
+            REQUEST_CODE_NOTIFICATIONS,
+            REQUEST_CODE_LOCATION,
+            REQUEST_CODE_BACKGROUND_LOCATION,
+            REQUEST_CODE_CAMERA,
+                -> {
+                val callbacks = PermissionCallbackManager.getCallbacks(requestId)
+                if (grantResults.isNotEmpty() && grantResults.all { it == PackageManager.PERMISSION_GRANTED }) {
+                    callbacks?.first?.invoke()
+                } else {
+                    callbacks?.second?.invoke()
+                }
+                PermissionCallbackManager.unregisterCallbacks(requestId)
             }
-            PermissionCallbackManager.unregisterCallbacks(requestId)
         }
 
         finish()
