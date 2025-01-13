@@ -22,6 +22,10 @@
     <uses-permission
             android:name="android.permission.READ_MEDIA_AUDIO"
             android:required="false" />
+    <uses-permission android:name="android.permission.BLUETOOTH" />
+    <uses-permission android:name="android.permission.BLUETOOTH_ADMIN" />
+    <uses-permission android:name="android.permission.BLUETOOTH_CONNECT" android:required="false" />
+
 
     <application
             android:icon="@android:mipmap/sym_def_app_icon"

@@ -22,6 +22,7 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
 import sample.app.permissions.BackgroundLocationPermissionSample
+import sample.app.permissions.BluetoothPermissionSample
 import sample.app.permissions.CameraPermissionSample
 import sample.app.permissions.ContactsPermissionSample
 import sample.app.permissions.InstallPermissionSample
@@ -55,6 +56,7 @@ fun PermissionExamplesApp() {
         PermissionScreen("Contacts", { ContactsPermissionSample() }),
         PermissionScreen("Record Audio", { RecordAudioPermissionSample() }),
         PermissionScreen("Read External Storage", { ReadExternalStoragePermissionSample() }),
+        PermissionScreen("Bluetooth", { BluetoothPermissionSample() }),
 
         )
     var currentScreenIndex by remember { mutableStateOf(0) }

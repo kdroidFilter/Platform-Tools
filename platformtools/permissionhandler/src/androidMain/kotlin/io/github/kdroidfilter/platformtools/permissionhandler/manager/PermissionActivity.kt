@@ -76,6 +76,9 @@ internal class PermissionActivity : Activity() {
 
         const val REQUEST_CODE_READ_MEDIA = 1011
         const val REQUEST_TYPE_READ_MEDIA = "read_media"
+
+        const val REQUEST_CODE_BLUETOOTH = 1012
+        const val REQUEST_TYPE_BLUETOOTH = "bluetooth"
     }
 
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -235,6 +238,17 @@ internal class PermissionActivity : Activity() {
                 }
             }
 
+            REQUEST_TYPE_BLUETOOTH -> {
+                if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.S) { // Android 12+
+                    requestPermissions(
+                        arrayOf(Manifest.permission.BLUETOOTH_CONNECT),
+                        REQUEST_CODE_BLUETOOTH
+                    )
+                } else {
+                    finish()
+                }
+            }
+
             else -> {
                 Log.e("PermissionActivity", "Unsupported request type: $requestType")
                 finish()
@@ -297,7 +311,8 @@ internal class PermissionActivity : Activity() {
             REQUEST_CODE_WRITE_CONTACTS,
             REQUEST_CODE_RECORD_AUDIO,
             REQUEST_CODE_READ_EXTERNAL_STORAGE,
-            REQUEST_CODE_READ_MEDIA
+            REQUEST_CODE_READ_MEDIA,
+            REQUEST_CODE_BLUETOOTH
                 -> {
                 val callbacks = PermissionCallbackManager.getCallbacks(requestId)
                 if (grantResults.isNotEmpty() && grantResults.all { it == PackageManager.PERMISSION_GRANTED }) {
