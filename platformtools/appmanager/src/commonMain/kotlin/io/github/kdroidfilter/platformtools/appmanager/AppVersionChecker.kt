@@ -1,5 +1,7 @@
-package io.github.kdroidfilter.platformtools
+package io.github.kdroidfilter.platformtools.appmanager
 
+import io.github.kdroidfilter.platformtools.getAppVersion
+import io.github.kdroidfilter.platformtools.getCacheDir
 import java.io.File
 
 private const val VERSION_FILE_NAME = "app_version.txt"
