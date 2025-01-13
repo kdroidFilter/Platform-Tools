@@ -30,33 +30,6 @@ actual fun getAppInstaller(): AppInstaller = ApkInstallerAndroid()
 class ApkInstallerAndroid : AppInstaller {
     private val context = ContextProvider.getContext()
 
-    override suspend fun canRequestInstallPackages(): Boolean {
-        return if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
-            context.packageManager.canRequestPackageInstalls()
-        } else {
-            true // Before Android O, this permission was not required
-        }
-    }
-
-    override suspend fun requestInstallPackagesPermission() {
-        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
-            val intent = Intent(Settings.ACTION_MANAGE_UNKNOWN_APP_SOURCES).apply {
-                data = Uri.parse("package:${context.packageName}")
-                flags = Intent.FLAG_ACTIVITY_NEW_TASK
-            }
-            suspendCancellableCoroutine { cont ->
-                try {
-                    context.startActivity(intent)
-                } catch (e: Exception) {
-                    // If the intent fails, ignore the exception to avoid blocking the coroutine
-                    e.printStackTrace()
-                } finally {
-                    // Resume in any case
-                    cont.resume(Unit)
-                }
-            }
-        }
-    }
 
 
 
@@ -64,22 +37,6 @@ class ApkInstallerAndroid : AppInstaller {
         appFile: File,
         onResult: (success: Boolean, message: String?) -> Unit,
     ) {
-        // 1) Check if installation from unknown sources is allowed
-        if (!canRequestInstallPackages()) {
-            // 2) Request permission if necessary
-            requestInstallPackagesPermission()
-
-            // Optional: Wait for the user to grant permission
-            // You can implement logic to wait or inform the user
-            // and return or suspend until the permission is granted.
-            // For simplicity, we continue here.
-        }
-
-        // 3) Re-check after the request: if still not allowed, exit
-        if (!canRequestInstallPackages()) {
-            onResult(false, "Installation from unknown sources is not allowed.")
-            return
-        }
 
         try {
             // Use a suspended coroutine to wait for the installation result
