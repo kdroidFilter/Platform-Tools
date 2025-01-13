@@ -23,10 +23,13 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
 import sample.app.permissions.BackgroundLocationPermissionSample
 import sample.app.permissions.CameraPermissionSample
+import sample.app.permissions.ContactsPermissionSample
 import sample.app.permissions.InstallPermissionSample
 import sample.app.permissions.LocationPermissionSample
 import sample.app.permissions.NotificationPermissionSample
 import sample.app.permissions.OverlayPermissionSample
+import sample.app.permissions.ReadExternalStoragePermissionSample
+import sample.app.permissions.RecordAudioPermissionSample
 
 class AppActivity : ComponentActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -49,6 +52,9 @@ fun PermissionExamplesApp() {
         PermissionScreen("Location", { LocationPermissionSample() }),
         PermissionScreen("Background Location", { BackgroundLocationPermissionSample() }),
         PermissionScreen("Camera", { CameraPermissionSample() }),
+        PermissionScreen("Contacts", { ContactsPermissionSample() }),
+        PermissionScreen("Record Audio", { RecordAudioPermissionSample() }),
+        PermissionScreen("Read External Storage", { ReadExternalStoragePermissionSample() }),
 
         )
     var currentScreenIndex by remember { mutableStateOf(0) }

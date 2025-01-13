@@ -9,6 +9,7 @@ import android.os.Build
 import android.os.Bundle
 import android.provider.Settings
 import android.util.Log
+import io.github.kdroidfilter.platformtools.permissionhandler.MediaType
 import io.github.kdroidfilter.platformtools.permissionhandler.hasInstallPermission
 import io.github.kdroidfilter.platformtools.permissionhandler.hasOverlayPermission
 
@@ -39,6 +40,8 @@ internal class PermissionActivity : Activity() {
     companion object {
         const val EXTRA_REQUEST_ID = "extra_request_id"
         const val EXTRA_REQUEST_TYPE = "extra_request_type"
+        const val EXTRA_MEDIA_TYPES = "extra_media_types"
+
         const val REQUEST_CODE_NOTIFICATIONS = 1001
         const val REQUEST_TYPE_NOTIFICATION = "notification"
 
@@ -64,6 +67,15 @@ internal class PermissionActivity : Activity() {
 
         const val REQUEST_CODE_WRITE_CONTACTS = 1008
         const val REQUEST_TYPE_WRITE_CONTACTS = "write_contacts"
+
+        const val REQUEST_CODE_RECORD_AUDIO = 1009
+        const val REQUEST_TYPE_RECORD_AUDIO = "record_audio"
+
+        const val REQUEST_CODE_READ_EXTERNAL_STORAGE = 1010
+        const val REQUEST_TYPE_READ_EXTERNAL_STORAGE = "read_external_storage"
+
+        const val REQUEST_CODE_READ_MEDIA = 1011
+        const val REQUEST_TYPE_READ_MEDIA = "read_media"
     }
 
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -82,7 +94,7 @@ internal class PermissionActivity : Activity() {
             REQUEST_TYPE_NOTIFICATION -> {
                 if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
                     requestPermissions(
-                        arrayOf(android.Manifest.permission.POST_NOTIFICATIONS),
+                        arrayOf(Manifest.permission.POST_NOTIFICATIONS),
                         REQUEST_CODE_NOTIFICATIONS
                     )
                 } else {
@@ -170,6 +182,59 @@ internal class PermissionActivity : Activity() {
                 }
             }
 
+            REQUEST_TYPE_RECORD_AUDIO -> {
+                if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
+                    requestPermissions(
+                        arrayOf(Manifest.permission.RECORD_AUDIO),
+                        REQUEST_CODE_RECORD_AUDIO
+                    )
+                } else {
+                    finish()
+                }
+            }
+
+            REQUEST_TYPE_READ_EXTERNAL_STORAGE -> {
+                if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
+                    requestPermissions(
+                        arrayOf(Manifest.permission.READ_EXTERNAL_STORAGE),
+                        REQUEST_CODE_READ_EXTERNAL_STORAGE
+                    )
+                } else {
+                    finish()
+                }
+            }
+
+            REQUEST_TYPE_READ_MEDIA -> {
+                if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
+                    val mediaTypes = intent.getStringArrayExtra(EXTRA_MEDIA_TYPES)?.mapNotNull { mediaTypeName ->
+                        try {
+                            MediaType.valueOf(mediaTypeName)
+                        } catch (e: IllegalArgumentException) {
+                            Log.e("PermissionActivity", "Invalid media type: $mediaTypeName", e)
+                            null
+                        }
+                    } ?: emptyList()
+
+                    if (mediaTypes.isEmpty()) {
+                        Log.e("PermissionActivity", "No valid media types provided")
+                        finish()
+                        return
+                    }
+
+                    val permissionsToRequest = mediaTypes.map { mediaType ->
+                        when (mediaType) {
+                            MediaType.IMAGES -> Manifest.permission.READ_MEDIA_IMAGES
+                            MediaType.VIDEO -> Manifest.permission.READ_MEDIA_VIDEO
+                            MediaType.AUDIO -> Manifest.permission.READ_MEDIA_AUDIO
+                        }
+                    }.toTypedArray()
+
+                    requestPermissions(permissionsToRequest, REQUEST_CODE_READ_MEDIA)
+                } else {
+                    finish()
+                }
+            }
+
             else -> {
                 Log.e("PermissionActivity", "Unsupported request type: $requestType")
                 finish()
@@ -229,7 +294,10 @@ internal class PermissionActivity : Activity() {
             REQUEST_CODE_BACKGROUND_LOCATION,
             REQUEST_CODE_CAMERA,
             REQUEST_CODE_READ_CONTACTS,
-            REQUEST_CODE_WRITE_CONTACTS
+            REQUEST_CODE_WRITE_CONTACTS,
+            REQUEST_CODE_RECORD_AUDIO,
+            REQUEST_CODE_READ_EXTERNAL_STORAGE,
+            REQUEST_CODE_READ_MEDIA
                 -> {
                 val callbacks = PermissionCallbackManager.getCallbacks(requestId)
                 if (grantResults.isNotEmpty() && grantResults.all { it == PackageManager.PERMISSION_GRANTED }) {
