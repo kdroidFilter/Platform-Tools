@@ -1,4 +1,4 @@
-package io.github.kdroidfilter.platformtools.permissionhandler.permission
+package io.github.kdroidfilter.platformtools.permissionhandler.manager
 
 /**
  * Manages permission callbacks for asynchronous request handling.

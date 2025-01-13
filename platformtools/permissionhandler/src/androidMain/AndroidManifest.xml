@@ -7,7 +7,7 @@
             tools:targetApi="tiramisu">
 
         <activity
-                android:name=".permission.PermissionActivity"
+                android:name=".manager.PermissionActivity"
                 android:theme="@style/TransparentActivityTheme"
                 android:excludeFromRecents="true"
                 android:exported="false" />

@@ -1,13 +1,12 @@
 package io.github.kdroidfilter.platformtools.permissionhandler
 
 import android.content.Intent
-import android.net.Uri
 import android.os.Build
 import android.provider.Settings
 import android.util.Log
 import com.kdroid.androidcontextprovider.ContextProvider
-import io.github.kdroidfilter.platformtools.permissionhandler.permission.PermissionActivity
-import io.github.kdroidfilter.platformtools.permissionhandler.permission.PermissionCallbackManager
+import io.github.kdroidfilter.platformtools.permissionhandler.manager.PermissionActivity
+import io.github.kdroidfilter.platformtools.permissionhandler.manager.PermissionCallbackManager
 
 /**
  * Checks if the application has permission to draw overlays on top of other apps.

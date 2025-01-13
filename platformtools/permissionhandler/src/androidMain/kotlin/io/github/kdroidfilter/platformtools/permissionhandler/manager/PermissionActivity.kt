@@ -1,4 +1,4 @@
-package io.github.kdroidfilter.platformtools.permissionhandler.permission
+package io.github.kdroidfilter.platformtools.permissionhandler.manager
 
 import android.Manifest
 import android.app.Activity
@@ -11,7 +11,6 @@ import android.provider.Settings
 import android.util.Log
 import io.github.kdroidfilter.platformtools.permissionhandler.hasInstallPermission
 import io.github.kdroidfilter.platformtools.permissionhandler.hasOverlayPermission
-import io.github.kdroidfilter.platformtools.permissionhandler.permission.PermissionCallbackManager
 
 /**
  * Activity for handling runtime permission requests, specifically for
@@ -59,6 +58,12 @@ internal class PermissionActivity : Activity() {
 
         const val REQUEST_CODE_CAMERA = 1006
         const val REQUEST_TYPE_CAMERA = "camera"
+
+        const val REQUEST_CODE_READ_CONTACTS = 1007
+        const val REQUEST_TYPE_READ_CONTACTS = "read_contacts"
+
+        const val REQUEST_CODE_WRITE_CONTACTS = 1008
+        const val REQUEST_TYPE_WRITE_CONTACTS = "write_contacts"
     }
 
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -143,6 +148,28 @@ internal class PermissionActivity : Activity() {
                 }
             }
 
+            REQUEST_TYPE_READ_CONTACTS -> {
+                if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
+                    requestPermissions(
+                        arrayOf(Manifest.permission.READ_CONTACTS),
+                        REQUEST_CODE_READ_CONTACTS
+                    )
+                } else {
+                    finish()
+                }
+            }
+
+            REQUEST_TYPE_WRITE_CONTACTS -> {
+                if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
+                    requestPermissions(
+                        arrayOf(Manifest.permission.WRITE_CONTACTS),
+                        REQUEST_CODE_WRITE_CONTACTS
+                    )
+                } else {
+                    finish()
+                }
+            }
+
             else -> {
                 Log.e("PermissionActivity", "Unsupported request type: $requestType")
                 finish()
@@ -201,16 +228,19 @@ internal class PermissionActivity : Activity() {
             REQUEST_CODE_LOCATION,
             REQUEST_CODE_BACKGROUND_LOCATION,
             REQUEST_CODE_CAMERA,
+            REQUEST_CODE_READ_CONTACTS,
+            REQUEST_CODE_WRITE_CONTACTS
                 -> {
                 val callbacks = PermissionCallbackManager.getCallbacks(requestId)
                 if (grantResults.isNotEmpty() && grantResults.all { it == PackageManager.PERMISSION_GRANTED }) {
-                    callbacks?.first?.invoke()
+                    callbacks?.first?.invoke()   // onGranted()
                 } else {
-                    callbacks?.second?.invoke()
+                    callbacks?.second?.invoke()  // onDenied()
                 }
                 PermissionCallbackManager.unregisterCallbacks(requestId)
             }
         }
+
 
         finish()
     }

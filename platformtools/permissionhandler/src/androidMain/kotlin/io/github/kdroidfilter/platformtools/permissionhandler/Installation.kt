@@ -4,8 +4,8 @@ import android.content.Intent
 import android.os.Build
 import android.util.Log
 import com.kdroid.androidcontextprovider.ContextProvider
-import io.github.kdroidfilter.platformtools.permissionhandler.permission.PermissionActivity
-import io.github.kdroidfilter.platformtools.permissionhandler.permission.PermissionCallbackManager
+import io.github.kdroidfilter.platformtools.permissionhandler.manager.PermissionActivity
+import io.github.kdroidfilter.platformtools.permissionhandler.manager.PermissionCallbackManager
 
 /**
  * Checks if the application has permission to install APK files.
