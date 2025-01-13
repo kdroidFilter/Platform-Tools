@@ -1,59 +1,269 @@
-## PlatformTools
+# PlatformTools
 
 **PlatformTools** is a Kotlin Multiplatform library designed to provide platform-specific utilities and tools for managing operating systems, application installation, and release fetching seamlessly across various platforms. The library is modular and divided into three main components: core, appmanager, and releasefetcher.
 
 ---
 
-## ✨ Features
+## Core Module
 
-### Core
+The **Core** module of the KMP Platform Tools library provides utilities for detecting the underlying operating system and platform, enabling platform-specific logic in Kotlin Multiplatform (KMP) projects. Below, we will detail the functionality and demonstrate usage of the provided features.
 
-- **Platform Detection**\
-  Identify the current platform or operating system, such as Windows, Mac, Linux, Android, iOS, JS, or WASM.
-- **Platform-Specific Utilities**\
-  Provides utility functions exclusive to Android and JVM:
+## Function: `getOperatingSystem`
 
-### AppManager (JVM and Android only)
+The `getOperatingSystem` function determines the operating system on which the application is currently running. This function is expected to be implemented for each target platform in a Kotlin Multiplatform project.
 
-- **App Installation Management**\
-  Check and request permissions for installing applications, install and uninstall apps, and manage application packages seamlessly.
+### Note
 
-### ReleaseFetcher
+While this functionality may appear to contradict the principles of Kotlin Multiplatform by focusing on operating systems rather than platforms, it is important to note that `getOperatingSystem` returns the operating system itself and not the platform. For example, on JVM, JavaScript, or WASM targets, this function will return the operating system being used (e.g., `WINDOWS`, `MACOS`, `LINUX`) rather than distinguishing between different platforms or runtime environments.
 
-- **Release Management**\
-  Fetch the latest release information from GitHub repositories, check for updates, and download release files tailored to the platform.
-- **File Downloader**\
-  Easily download application files with progress tracking through the Downloader class.
-- **Update Checker**\
-  Includes a function to check for updates (`checkForUpdate`). This function determines whether a newer version of the application is available and provides the new version details and changelog if an update is needed.
-- **Platform-specific Download Link Retrieval**\
-  Contains a function (`getDownloadLinkForPlatform`) to retrieve the download link for a release asset suitable for the current platform (e.g., APK for Android, MSI for Windows).
+```kotlin
+fun getOperatingSystem(): OperatingSystem
+```
+
+### Function: `getPlatform`
+
+The `getPlatform` function determines the specific platform or runtime environment on which the application is running. This is useful for small adjustments in shared code that depend on the platform.
+
+```kotlin
+fun getPlatform(): Platform
+```
+
+### Example Usage
+
+Here is an example of how to use `getOperatingSystem` and `getPlatform` with separate `when` blocks for each:
+
+```kotlin
+when (val os = getOperatingSystem()) {
+    OperatingSystem.WINDOWS -> println("Logic for Windows OS")
+    OperatingSystem.MACOS -> println("Logic for macOS")
+    OperatingSystem.LINUX -> println("Logic for Linux OS")
+    OperatingSystem.ANDROID -> println("Logic for Android OS")
+    OperatingSystem.IOS -> println("Logic for iOS OS")
+    OperatingSystem.UNKNOWN -> println("Logic for unknown OS")
+}
+
+when (val platform = getPlatform()) {
+    Platform.ANDROID -> println("Logic for Android platform")
+    Platform.JVM -> println("Logic for JVM platform")
+    Platform.IOS_NATIVE -> println("Logic for iOS Native platform")
+    Platform.JS -> println("Logic for JavaScript platform")
+    Platform.WASM_JS -> println("Logic for WebAssembly JS platform")
+    Platform.LINUX_NATIVE -> println("Logic for Linux Native platform")
+    Platform.MAC_OS_NATIVE -> println("Logic for macOS Native platform")
+    Platform.WINDOWS_NATIVE -> println("Logic for Windows Native platform")
+}
+```
+
+### Android and JVM Only functions
+
+#### `getCacheDir`
+
+```kotlin
+val cacheDir: File = getCacheDir()
+```
+
+#### `getAppVersion`
+
+```kotlin
+val version = getAppVersion()
+println("App version: $version")
+```
 
 ---
 
-## 📦 Installation
-
-Add the following dependencies to your Kotlin Multiplatform project:
-
-### Core
+This library is available on Maven Central. To include this library in your project, add the following dependency to your `build.gradle.kts` 
 
 ```kotlin
-implementation("io.github.kdroidfilter:platformtools.core:0.1.4")
+implementation("io.github.kdroidfilter:platformtools.core:0.2.0")
 ```
 
-### AppManager
+## AppManager Module (Jvm & Android only)
+
+The **AppManager** module of the KMP Platform Tools library provides utilities to manage application-level information and configurations across multiple platforms. Below, we will detail the functionality and demonstrate usage of the provided features.
+
+### Overview
+
+This module is designed to simplify retrieving and managing app-related metadata, such as package information and other common requirements. It supports platform-specific implementations while offering a unified API for shared code.
+
+
+### Interface: `AppInstaller`
+
+The `AppInstaller` interface provides platform-specific functionality for installing and uninstalling applications. Depending on the platform, it can handle APK files on Android, MSI files on Windows, PKG files on macOS, and DEB files on Linux.
+
+#### Key Functions
+
+##### `installApp`
+
+Installs an application from the specified file. This function requires appropriate permissions, such as the ability to install apps from unknown sources.
 
 ```kotlin
-implementation("io.github.kdroidfilter:platformtools.appmanager:0.1.4")
+suspend fun installApp(appFile: File, onResult: (success: Boolean, message: String?) -> Unit)
 ```
 
-### ReleaseFetcher
+**Parameters:**
+
+- `appFile`: The file to be installed (e.g., APK, MSI, PKG, or DEB).
+- `onResult`: A callback with the installation result. Provides:
+  - `success`: Indicates whether the installation succeeded.
+  - `message`: An optional message with additional context (e.g., error details).
+
+##### `uninstallApp`
+
+Uninstalls an application using the provided package name or removes the current application. Currently, uninstallation functionality is only supported on Android.
 
 ```kotlin
-implementation("io.github.kdroidfilter:platformtools.releasefetcher:0.1.4")
+suspend fun uninstallApp(packageName: String, onResult: (success: Boolean, message: String?) -> Unit)
+```
+
+```kotlin
+suspend fun uninstallApp(onResult: (success: Boolean, message: String?) -> Unit)
+```
+
+**Parameters:**
+
+- `packageName` (optional): The package name of the app to uninstall.
+- `onResult`: A callback with the uninstallation result. Provides:
+  - `success`: Indicates whether the uninstallation succeeded.
+  - `message`: An optional message with additional context.
+
+### Factory Function: `getAppInstaller`
+
+Retrieves the platform-specific implementation of the `AppInstaller` interface.
+
+```kotlin
+fun getAppInstaller(): AppInstaller
+```
+
+**Example Usage:**
+
+```kotlin
+import io.github.kdroidfilter.platformtools.appmanager.getAppInstaller
+
+suspend fun performAppInstallation(appFile: File) {
+    val appInstaller = getAppInstaller()
+    appInstaller.installApp(appFile) { success, message ->
+        if (success) {
+            println("App installed successfully.")
+        } else {
+            println("Failed to install app: $message")
+        }
+    }
+}
+
+suspend fun performAppUninstallation(packageName: String) {
+    val appInstaller = getAppInstaller()
+    appInstaller.uninstallApp(packageName) { success, message ->
+        if (success) {
+            println("App uninstalled successfully.")
+        } else {
+            println("Failed to uninstall app: $message")
+        }
+    }
+}
 ```
 
 ---
+
+### Windows-Specific Configuration
+
+The `AppManager` module provides additional configuration options for managing Windows application installations:
+
+#### Configuring Administrator Privileges
+
+You can configure whether the application installation requires administrator privileges by modifying the `requireAdmin` property:
+
+```kotlin
+WindowsInstallerConfig.requireAdmin = false // Default is true
+```
+
+#### Enabling Per-User Installation for Silent Updates
+
+For enabling silent updates on Windows, it is recommended to configure `perUserInstall` as `true` in your build settings. Below is an example configuration for a Compose Desktop application:
+
+```kotlin
+compose.desktop {
+  application {
+    mainClass = "com.kdroid.sample.MainKt"
+    nativeDistributions {
+      targetFormats(TargetFormat.Msi, TargetFormat.Deb, TargetFormat.Pkg)
+      windows {
+        perUserInstall = true
+      }
+    }
+  }
+}
+```
+
+---
+
+### Android-Specific Function: `installAppSilently`
+
+The `AppManager` module provides an additional function for Android devices running in Device Owner mode:
+
+#### `installAppSilently`
+
+Silently installs an application from the specified file without requiring user interaction. This is particularly useful for enterprise environments or Device Owner mode.
+
+```kotlin
+suspend fun installAppSilently(
+    appFile: File,
+    onResult: (success: Boolean, message: String?) -> Unit
+)
+```
+
+**Parameters:**
+
+- `appFile`: The APK file to be installed.
+- `onResult`: A callback with the installation result. Provides:
+  - `success`: Indicates whether the installation succeeded.
+  - `message`: An optional message with additional context (e.g., error details).
+
+---
+
+## Additional Functions (Jvm & Android)
+
+The `AppManager` module also provides the following utility functions for JVM and Android platforms:
+
+### `restartApplication`
+
+Restarts the current application.&#x20;
+
+```kotlin
+fun restartApplication()
+```
+
+### `hasAppVersionChanged`
+
+Checks if the application version has changed since the last time it was opened. This is useful for detecting updates and performing related actions.
+
+```kotlin
+fun hasAppVersionChanged(): Boolean
+```
+
+**Example Usage:**
+
+```kotlin
+import io.github.kdroidfilter.platformtools.appmanager.restartApplication
+import io.github.kdroidfilter.platformtools.appmanager.hasAppVersionChanged
+
+fun handleAppUpdate() {
+    if (hasAppVersionChanged()) {
+        println("The application has been updated.")
+        // Perform actions required after an update
+    } else {
+        println("No updates detected.")
+    }
+}
+
+
+```
+
+This library is available on Maven Central. To include it in your project, add the following dependency to your `build.gradle.kts` or `build.gradle` file:
+
+```kotlin
+implementation("io.github.kdroidfilter:platformtools.appmanager:0.2.0")
+```
+
 
 ## 🌟 Modules
 
