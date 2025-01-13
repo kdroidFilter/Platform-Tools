@@ -36,71 +36,23 @@ class AppActivity : ComponentActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContent {
-            PermissionExamplesApp()
+            val screens = listOf(
+                PermissionScreen("Common App", {App()}),
+                PermissionScreen("Notification", { NotificationPermissionSample() }),
+                PermissionScreen("Installation", { InstallPermissionSample() }),
+                PermissionScreen("Overlay", { OverlayPermissionSample() }),
+                PermissionScreen("Location", { LocationPermissionSample() }),
+                PermissionScreen("Background Location", { BackgroundLocationPermissionSample() }),
+                PermissionScreen("Camera", { CameraPermissionSample() }),
+                PermissionScreen("Contacts", { ContactsPermissionSample() }),
+                PermissionScreen("Record Audio", { RecordAudioPermissionSample() }),
+                PermissionScreen("Read External Storage", { ReadExternalStoragePermissionSample() }),
+                PermissionScreen("Bluetooth", { BluetoothPermissionSample() }),
+
+                )
+            PermissionExamplesApp(screens)
         }
     }
 }
 
-
-@OptIn(ExperimentalMaterial3Api::class)
-@Composable
-fun PermissionExamplesApp() {
-    val screens = listOf(
-        PermissionScreen("Common App", {App()}),
-        PermissionScreen("Notification", { NotificationPermissionSample() }),
-        PermissionScreen("Installation", { InstallPermissionSample() }),
-        PermissionScreen("Overlay", { OverlayPermissionSample() }),
-        PermissionScreen("Location", { LocationPermissionSample() }),
-        PermissionScreen("Background Location", { BackgroundLocationPermissionSample() }),
-        PermissionScreen("Camera", { CameraPermissionSample() }),
-        PermissionScreen("Contacts", { ContactsPermissionSample() }),
-        PermissionScreen("Record Audio", { RecordAudioPermissionSample() }),
-        PermissionScreen("Read External Storage", { ReadExternalStoragePermissionSample() }),
-        PermissionScreen("Bluetooth", { BluetoothPermissionSample() }),
-
-        )
-    var currentScreenIndex by remember { mutableStateOf(0) }
-
-    Scaffold(
-        topBar = {
-            TopAppBar(
-                title = { Text("Permission Examples") },
-            )
-        }
-    ) { paddingValues ->
-        Column(
-            modifier = Modifier
-                .fillMaxSize()
-                .padding(paddingValues)
-        ) {
-            // Navigation Tabs
-            ScrollableTabRow(
-                selectedTabIndex = currentScreenIndex,
-                modifier = Modifier.fillMaxWidth()
-            ) {
-                screens.forEachIndexed { index, screen ->
-                    Tab(
-                        selected = currentScreenIndex == index,
-                        onClick = { currentScreenIndex = index },
-                        text = { Text(screen.title) }
-                    )
-                }
-            }
-
-            // Content
-            Box(
-                modifier = Modifier
-                    .fillMaxSize()
-                    .padding(16.dp)
-            ) {
-                screens[currentScreenIndex].content()
-            }
-        }
-    }
-}
-
-data class PermissionScreen(
-    val title: String,
-    val content: @Composable () -> Unit
-)
 
