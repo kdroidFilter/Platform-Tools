@@ -15,7 +15,7 @@ kotlin {
     jvmToolchain(17)
 
     androidTarget { publishLibraryVariants("release") }
-
+    jvm()
     js { browser() }
     wasmJs { browser() }
     iosX64()

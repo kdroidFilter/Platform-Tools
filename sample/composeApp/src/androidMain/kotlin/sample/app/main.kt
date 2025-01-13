@@ -9,7 +9,9 @@ class AppActivity : ComponentActivity() {
         super.onCreate(savedInstanceState)
         setContent {
           // App()
-            NotificationPermissionSample()
+           // NotificationPermissionSample()
+           // InstallPermissionSample()
+            OverlayPermissionSample()
         }
     }
 }

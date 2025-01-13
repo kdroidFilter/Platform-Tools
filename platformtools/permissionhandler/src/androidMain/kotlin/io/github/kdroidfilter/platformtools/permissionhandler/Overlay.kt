@@ -6,6 +6,8 @@ import android.os.Build
 import android.provider.Settings
 import android.util.Log
 import com.kdroid.androidcontextprovider.ContextProvider
+import io.github.kdroidfilter.platformtools.permissionhandler.permission.PermissionActivity
+import io.github.kdroidfilter.platformtools.permissionhandler.permission.PermissionCallbackManager
 
 /**
  * Checks if the application has permission to draw overlays on top of other apps.
@@ -29,23 +31,42 @@ fun hasOverlayPermission(): Boolean {
  * Requests overlay permission for the application. On Android M (API 23) and above, this method
  * initiates an intent to the system settings screen where the user can grant the overlay permission.
  *
- * @param requestCode The request code used in the call to startActivityForResult to identify
- * the permission request. Defaults to 100 if not provided.
+ * Note: Ensure to add the following permission in the app's manifest file:
+ * <uses-permission android:name="android.permission.SYSTEM_ALERT_WINDOW" />
+ *
+ * @param onGranted Callback executed when the permission is granted.
+ * @param onDenied Callback executed when the permission is denied.
  */
-fun requestOverlayPermission(requestCode: Int = 100) {
+fun requestOverlayPermission(
+    onGranted: () -> Unit,
+    onDenied: () -> Unit,
+) {
     val context = ContextProvider.getContext()
+
     if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
-        val intent = Intent(
-            Settings.ACTION_MANAGE_OVERLAY_PERMISSION,
-            Uri.parse("package:${context.packageName}")
-        )
-        if (context is android.app.Activity) {
-            context.startActivityForResult(intent, requestCode)
+        // Check if the permission is already granted
+        if (hasOverlayPermission()) {
+            onGranted()
         } else {
-            intent.flags = Intent.FLAG_ACTIVITY_NEW_TASK
-            context.startActivity(intent)
+            val requestId = PermissionCallbackManager.registerCallbacks(onGranted, onDenied)
+
+            // Create and launch PermissionActivity
+            try {
+                val intent = Intent(context, PermissionActivity::class.java).apply {
+                    flags = Intent.FLAG_ACTIVITY_NEW_TASK
+                    putExtra(PermissionActivity.EXTRA_REQUEST_ID, requestId)
+                    putExtra(PermissionActivity.EXTRA_REQUEST_TYPE, PermissionActivity.REQUEST_TYPE_OVERLAY)
+                }
+                context.startActivity(intent)
+            } catch (e: Exception) {
+                Log.e("OverlayPermission", "Error while launching PermissionActivity", e)
+                PermissionCallbackManager.unregisterCallbacks(requestId)
+                onDenied()
+            }
         }
     } else {
-        Log.d("OverlayPermission", "Overlay permission not needed ")
+        Log.d("OverlayPermission", "Overlay permission not needed")
+        onGranted()
     }
 }
+

@@ -1,11 +1,11 @@
 package io.github.kdroidfilter.platformtools.permissionhandler
 
 import android.content.Intent
-import android.net.Uri
 import android.os.Build
-import android.provider.Settings
 import android.util.Log
 import com.kdroid.androidcontextprovider.ContextProvider
+import io.github.kdroidfilter.platformtools.permissionhandler.permission.PermissionActivity
+import io.github.kdroidfilter.platformtools.permissionhandler.permission.PermissionCallbackManager
 
 /**
  * Checks if the application has permission to install APK files.
@@ -25,24 +25,49 @@ fun hasInstallPermission(): Boolean {
     }
 }
 
+
 /**
- * Requests permission to install APK files. On Android Oreo (API 26) and above, this method
- * initiates an intent to the system settings screen where the user can grant the install permission.
+ * Requests the install permission required to allow the app to install APK files from unknown sources.
+ * This method checks if the required permission has already been granted. If granted, the `onGranted`
+ * callback is invoked. If not, the method triggers a permission request workflow via a dedicated
+ * `PermissionActivity`, and the appropriate callback (`onGranted` or `onDenied`) is invoked based
+ * on the user's action.
  *
- * @param requestCode The request code used in the call to startActivityForResult to identify
- * the permission request. Defaults to 300 if not provided.
+ * Note: Ensure to add <uses-permission android:name="android.permission.REQUEST_INSTALL_PACKAGES" />
+ * to your AndroidManifest.xml file. *
+ * @param onGranted A callback function that is invoked when the install permission is granted.
+ * @param onDenied A callback function that is invoked when the install permission is denied.
  */
-fun requestInstallPermission(requestCode: Int = 300) {
+fun requestInstallPermission(
+    onGranted: () -> Unit,
+    onDenied: () -> Unit,
+) {
     val context = ContextProvider.getContext()
+
     if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
-        val intent = Intent(Settings.ACTION_MANAGE_UNKNOWN_APP_SOURCES, Uri.parse("package:${context.packageName}"))
-        if (context is android.app.Activity) {
-            context.startActivityForResult(intent, requestCode)
+        // Check if the permission is already granted
+        if (hasInstallPermission()) {
+            onGranted()
         } else {
-            intent.flags = Intent.FLAG_ACTIVITY_NEW_TASK
-            context.startActivity(intent)
+            val requestId = PermissionCallbackManager.registerCallbacks(onGranted, onDenied)
+
+            // Create and launch PermissionActivity
+            try {
+                val intent = Intent(context, PermissionActivity::class.java).apply {
+                    flags = Intent.FLAG_ACTIVITY_NEW_TASK
+                    putExtra(PermissionActivity.EXTRA_REQUEST_ID, requestId)
+                    putExtra(PermissionActivity.EXTRA_REQUEST_TYPE, PermissionActivity.REQUEST_TYPE_INSTALL)
+                }
+                context.startActivity(intent)
+            } catch (e: Exception) {
+                Log.e("InstallPermission", "Error while launching PermissionActivity", e)
+                PermissionCallbackManager.unregisterCallbacks(requestId)
+                onDenied()
+            }
         }
     } else {
         Log.d("InstallPermission", "Install permission not needed")
+        onGranted()
     }
 }
+

@@ -1,4 +1,4 @@
-package io.github.kdroidfilter.platformtools.permissionhandler.notification
+package io.github.kdroidfilter.platformtools.permissionhandler
 
 import android.Manifest
 import android.app.NotificationManager
@@ -9,6 +9,8 @@ import android.os.Build
 import android.util.Log
 import androidx.core.content.ContextCompat
 import com.kdroid.androidcontextprovider.ContextProvider
+import io.github.kdroidfilter.platformtools.permissionhandler.permission.PermissionActivity
+import io.github.kdroidfilter.platformtools.permissionhandler.permission.PermissionCallbackManager
 
 /**
  * Checks if the application has permission to post notifications.

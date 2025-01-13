@@ -8,18 +8,18 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.unit.dp
-import io.github.kdroidfilter.platformtools.permissionhandler.hasNotificationPermission
-import io.github.kdroidfilter.platformtools.permissionhandler.requestNotificationPermission
+import io.github.kdroidfilter.platformtools.permissionhandler.hasInstallPermission
+import io.github.kdroidfilter.platformtools.permissionhandler.requestInstallPermission
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun NotificationPermissionSample() {
+fun InstallPermissionSample() {
     val context = LocalContext.current
-    var permissionGranted by remember { mutableStateOf(hasNotificationPermission()) }
+    var permissionGranted by remember { mutableStateOf(hasInstallPermission()) }
 
     Scaffold(
         topBar = {
-            TopAppBar(title = { Text("Notification Permissions") })
+            TopAppBar(title = { Text("Install Permissions") })
         },
         content = { padding ->
             Box(
@@ -30,14 +30,14 @@ fun NotificationPermissionSample() {
             ) {
                 Column(horizontalAlignment = Alignment.CenterHorizontally) {
                     Text(
-                        text = if (permissionGranted) "Notification permission granted ✅" else "Notification permission required 🚫",
+                        text = if (permissionGranted) "Install permission granted ✅" else "Install permission required 🚫",
                         style = MaterialTheme.typography.bodyLarge
                     )
                     Spacer(modifier = Modifier.height(16.dp))
                     if (!permissionGranted) {
                         Button(
                             onClick = {
-                                requestNotificationPermission(
+                                requestInstallPermission(
                                     onGranted = {
                                         permissionGranted = true
                                         Toast.makeText(context, "Permission granted", Toast.LENGTH_SHORT).show()

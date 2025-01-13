@@ -1,4 +1,4 @@
-package io.github.kdroidfilter.platformtools.permissionhandler.notification
+package io.github.kdroidfilter.platformtools.permissionhandler
 
 import kotlin.js.Promise
 
