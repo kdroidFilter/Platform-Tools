@@ -49,31 +49,30 @@ actual fun requestNotificationPermission(
     val context = ContextProvider.getContext()
 
     if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
-        // Check if the permission is already granted
         when (ContextCompat.checkSelfPermission(context, Manifest.permission.POST_NOTIFICATIONS)) {
             PackageManager.PERMISSION_GRANTED -> {
                 onGranted()
             }
             else -> {
-                // Register the callbacks
                 val requestId = PermissionCallbackManager.registerCallbacks(onGranted, onDenied)
 
-                // Create and launch PermissionActivity
                 try {
                     val intent = Intent(context, PermissionActivity::class.java).apply {
                         flags = Intent.FLAG_ACTIVITY_NEW_TASK
                         putExtra(PermissionActivity.EXTRA_REQUEST_ID, requestId)
+                        putExtra(PermissionActivity.EXTRA_REQUEST_TYPE, PermissionActivity.REQUEST_TYPE_NOTIFICATION)
                     }
+
                     context.startActivity(intent)
                 } catch (e: Exception) {
                     Log.e("NotificationPermission", "Error while launching PermissionActivity", e)
+                    e.printStackTrace()
                     PermissionCallbackManager.unregisterCallbacks(requestId)
                     onDenied()
                 }
             }
         }
     } else {
-        // No permission required before TIRAMISU
         Log.d("NotificationPermission", "No notification permission required for this Android version.")
         onGranted()
     }
