@@ -39,7 +39,8 @@ fun PermissionExamplesApp() {
         PermissionScreen("Common App", {App()}),
         PermissionScreen("Notification", { NotificationPermissionSample() }),
         PermissionScreen("Installation", { InstallPermissionSample() }),
-        PermissionScreen("Overlay", { OverlayPermissionSample() })
+        PermissionScreen("Overlay", { OverlayPermissionSample() }),
+        PermissionScreen("Location", { LocationPermissionSample() }),
     )
     var currentScreenIndex by remember { mutableStateOf(0) }
 

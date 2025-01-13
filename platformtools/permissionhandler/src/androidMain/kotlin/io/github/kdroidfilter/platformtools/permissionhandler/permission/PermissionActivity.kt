@@ -38,12 +38,18 @@ internal class PermissionActivity : Activity() {
         const val EXTRA_REQUEST_ID = "extra_request_id"
         const val EXTRA_REQUEST_TYPE = "extra_request_type"
         const val REQUEST_CODE_NOTIFICATIONS = 1001
-        const val REQUEST_CODE_INSTALL = 1002
-        const val REQUEST_CODE_OVERLAY = 1003
-
         const val REQUEST_TYPE_NOTIFICATION = "notification"
+
+        const val REQUEST_CODE_INSTALL = 1002
         const val REQUEST_TYPE_INSTALL = "install"
+
+
+        const val REQUEST_CODE_OVERLAY = 1003
         const val REQUEST_TYPE_OVERLAY = "overlay"
+
+        const val REQUEST_CODE_LOCATION = 1004
+        const val REQUEST_TYPE_LOCATION = "location"
+        const val EXTRA_PRECISE_LOCATION = "extra_precise_location"
     }
 
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -88,6 +94,18 @@ internal class PermissionActivity : Activity() {
                     startActivityForResult(intent, REQUEST_CODE_OVERLAY)
                 } else {
                     finish()
+                }
+            }
+
+            REQUEST_TYPE_LOCATION -> {
+                val preciseLocation = intent.getBooleanExtra(EXTRA_PRECISE_LOCATION, true)
+                val permission = if (preciseLocation) {
+                    Manifest.permission.ACCESS_FINE_LOCATION
+                } else {
+                    Manifest.permission.ACCESS_COARSE_LOCATION
+                }
+                if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
+                    requestPermissions(arrayOf(permission), REQUEST_CODE_LOCATION)
                 }
             }
 
@@ -138,18 +156,17 @@ internal class PermissionActivity : Activity() {
     ) {
         super.onRequestPermissionsResult(requestCode, permissions, grantResults)
 
-        if (requestCode == REQUEST_CODE_NOTIFICATIONS) {
-            val requestId = intent.getIntExtra(EXTRA_REQUEST_ID, -1)
-            if (requestId != -1) {
-                val callbacks = PermissionCallbackManager.getCallbacks(requestId)
-                if (grantResults.isNotEmpty() && grantResults[0] == PackageManager.PERMISSION_GRANTED) {
-                    callbacks?.first?.invoke()
-                } else {
-                    callbacks?.second?.invoke()
-                }
-                PermissionCallbackManager.unregisterCallbacks(requestId)
+        val requestId = intent.getIntExtra(EXTRA_REQUEST_ID, -1)
+        if (requestCode in arrayOf(REQUEST_CODE_NOTIFICATIONS, REQUEST_CODE_LOCATION) && requestId != -1) {
+            val callbacks = PermissionCallbackManager.getCallbacks(requestId)
+            if (grantResults.isNotEmpty() && grantResults[0] == PackageManager.PERMISSION_GRANTED) {
+                callbacks?.first?.invoke()
+            } else {
+                callbacks?.second?.invoke()
             }
+            PermissionCallbackManager.unregisterCallbacks(requestId)
         }
+
         finish()
     }
 }
