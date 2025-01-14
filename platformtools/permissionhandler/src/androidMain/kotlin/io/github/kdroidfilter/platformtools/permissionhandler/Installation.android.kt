@@ -16,7 +16,7 @@ import io.github.kdroidfilter.platformtools.permissionhandler.manager.Permission
  *
  * @return true if the install permission is granted, or if the platform version is lower than API level 26.
  */
-fun hasInstallPermission(): Boolean {
+actual fun hasInstallPermission(): Boolean {
     val context = ContextProvider.getContext()
     return if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
         context.packageManager.canRequestPackageInstalls()
@@ -38,7 +38,7 @@ fun hasInstallPermission(): Boolean {
  * @param onGranted A callback function that is invoked when the install permission is granted.
  * @param onDenied A callback function that is invoked when the install permission is denied.
  */
-fun requestInstallPermission(
+actual fun requestInstallPermission(
     onGranted: () -> Unit,
     onDenied: () -> Unit,
 ) {
