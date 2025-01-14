@@ -15,6 +15,7 @@ import androidx.compose.runtime.remember
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
 import io.github.kdroidfilter.platformtools.appmanager.hasAppVersionChanged
+import io.github.kdroidfilter.platformtools.appmanager.isFirstInstallation
 import io.github.kdroidfilter.platformtools.appmanager.restartApplication
 
 @OptIn(ExperimentalMaterial3Api::class)
@@ -26,6 +27,8 @@ fun AppManagerDemo() {
                 .padding(16.dp),
             verticalArrangement = Arrangement.spacedBy(16.dp)
         ) {
+            Text(if (isFirstInstallation()) "This is the first Installation !" else "This is not the first Installation !", style = MaterialTheme.typography.bodyLarge)
+
             Text(if (hasAppVersionChanged()) "The app was updated !" else "The app was not updated !", style = MaterialTheme.typography.bodyLarge)
             Button(onClick = { restartApplication() }) {
                 Text("Restart Application")
