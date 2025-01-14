@@ -3,9 +3,19 @@ package io.github.kdroidfilter.platformtools.permissionhandler
 import io.github.kdroidfilter.platformtools.permissionhandler.NotificationPermission.entries
 import kotlin.js.Promise
 
+
 /**
- * Represents the different permission states for notifications.
+ * Exposes Notification.permission in Kotlin/Wasm.
  */
+@JsFun("() => Notification.permission")
+private external fun getNotificationPermissionValue(): String
+
+/**
+ * Exposes Notification.requestPermission() in Kotlin/Wasm.
+ */
+@JsFun("() => Notification.requestPermission()")
+private external fun requestNotificationPermissionJs(): Promise<JsAny>
+
 internal enum class NotificationPermission(val value: String) {
     GRANTED("granted"),
     DENIED("denied"),
@@ -17,14 +27,16 @@ internal enum class NotificationPermission(val value: String) {
     }
 }
 
-
 /**
  * Checks if the application has permission to display notifications.
  *
  * @return true if the application has permission, false otherwise.
  */
-actual fun hasNotificationPermission(): Boolean =
-    (js("Notification.permission") as String) == NotificationPermission.GRANTED.value
+actual fun hasNotificationPermission(): Boolean {
+    // Call the external function instead of js("Notification.permission")
+    val currentPermission = getNotificationPermissionValue()
+    return currentPermission == NotificationPermission.GRANTED.value
+}
 
 /**
  * Requests permission to display notifications.
@@ -36,10 +48,11 @@ actual fun requestNotificationPermission(
     onGranted: () -> Unit,
     onDenied: () -> Unit
 ) {
+    // We handle "default" as denied in the simpler function
     handleNotificationPermissionRequest(
         onGranted = onGranted,
         onDenied = onDenied,
-        onDefault = onDenied  // By default, treat as denied
+        onDefault = onDenied
     )
 }
 
@@ -67,18 +80,21 @@ private fun handleNotificationPermissionRequest(
     onDefault: () -> Unit
 ) {
     try {
-        val requestPermission = js("Notification.requestPermission()") as Promise<String>
-        requestPermission
-            .then { permission ->
-                when (NotificationPermission.fromValue(permission)) {
-                    NotificationPermission.GRANTED -> onGranted()
-                    NotificationPermission.DENIED -> onDenied()
-                    NotificationPermission.DEFAULT -> onDefault()
-                }
-                null // Explicitly return null
+        val requestPermission = requestNotificationPermissionJs()
+        requestPermission.then { permission ->
+            // Safely cast JsAny to String
+            val permString = permission as String
+
+            when (NotificationPermission.fromValue(permString)) {
+                NotificationPermission.GRANTED -> onGranted()
+                NotificationPermission.DENIED -> onDenied()
+                NotificationPermission.DEFAULT -> onDefault()
             }
+            null // Explicitly return null to satisfy the lambda
+        }
     } catch (e: Exception) {
         println("Unexpected error during permission request $e")
         onDenied()
     }
 }
+
