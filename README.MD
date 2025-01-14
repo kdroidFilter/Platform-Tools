@@ -269,7 +269,7 @@ fun isFirstInstallation(): Boolean
   }
 ```
 
-This library is available on Maven Central. To include it in your project, add the following dependency to your `build.gradle.kts` or `build.gradle` file:
+This library is available on Maven Central. To include it in your project, add the following dependency to your `build.gradle.kts` :
 
 ```kotlin
 implementation("io.github.kdroidfilter:platformtools.appmanager:0.2.0")
@@ -400,7 +400,7 @@ fun main() = runBlocking {
 }
 ```
 
-This library is available on Maven Central. To include it in your project, add the following dependency to your `build.gradle.kts` or `build.gradle` file:
+This library is available on Maven Central. To include it in your project, add the following dependency to your `build.gradle.kts`:
 
 ```kotlin
 implementation("io.github.kdroidfilter:platformtools.releasefetcher:0.2.0")
@@ -408,7 +408,7 @@ implementation("io.github.kdroidfilter:platformtools.releasefetcher:0.2.0")
 
 ---
 
-## ⚖️ Permission Handler Module
+## ⚖️ Permission Handler Module (Android Only)
 
 The **Permission Handler** module provides a simple way to check and request permissions on Android. It simplifies the process, requiring only that you declare the necessary permissions in the Android manifest file.
 
@@ -593,7 +593,7 @@ fun checkAndRequestReadExternalStoragePermission() {
 - Comprehensive: Handles a wide range of Android permissions.
 - Developer-friendly: Simple APIs with clear callbacks for permission handling.
 
-This library is available on Maven Central. To include it in your project, add the following dependency to your `build.gradle.kts` or `build.gradle` file:
+This library is available on Maven Central. To include it in your project, add the following dependency to your `build.gradle.kts` :
 
 ```kotlin
 implementation("io.github.kdroidfilter:platformtools.permissionhandler:0.2.0")
