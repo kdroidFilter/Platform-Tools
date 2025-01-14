@@ -8,11 +8,11 @@
 
 The **Core** module of the KMP Platform Tools library provides utilities for detecting the underlying operating system and platform, enabling platform-specific logic in Kotlin Multiplatform (KMP) projects. Below, we will detail the functionality and demonstrate usage of the provided features.
 
-## Function: `getOperatingSystem`
+### Function: `getOperatingSystem`
 
 The `getOperatingSystem` function determines the operating system on which the application is currently running. This function is expected to be implemented for each target platform in a Kotlin Multiplatform project.
 
-### Note
+#### Note
 
 While this functionality may appear to contradict the principles of Kotlin Multiplatform by focusing on operating systems rather than platforms, it is important to note that `getOperatingSystem` returns the operating system itself and not the platform. For example, on JVM, JavaScript, or WASM targets, this function will return the operating system being used (e.g., `WINDOWS`, `MACOS`, `LINUX`) rather than distinguishing between different platforms or runtime environments.
 
@@ -69,6 +69,17 @@ val version = getAppVersion()
 println("App version: $version")
 ```
 
+### Android only functions
+
+#### `getAppVersion(packageName: String)`
+
+Under Android, it's possible to take a package name as a parameter to get the version of another application.
+
+```kotlin
+val version = getAppVersion("com.sample.anotherApp")
+println("App version: $version")
+```
+
 ---
 
 This library is available on Maven Central. To include this library in your project, add the following dependency to your `build.gradle.kts` 
@@ -88,8 +99,12 @@ This module is designed to simplify retrieving and managing app-related metadata
 
 ### Interface: `AppInstaller`
 
-The `AppInstaller` interface provides platform-specific functionality for installing and uninstalling applications. Depending on the platform, it can handle APK files on Android, MSI files on Windows, PKG files on macOS, and DEB files on Linux.
+The `AppInstaller` interface provides platform-specific functionality for managing application installation and uninstallation. For each platform, the required file format is as follows:
 
+- **Android**: APK file
+- **Windows**: MSI file
+- **Linux**: DEB file
+- **Mac**: PKG file
 #### Key Functions
 
 ##### `installApp`
@@ -137,7 +152,6 @@ fun getAppInstaller(): AppInstaller
 **Example Usage:**
 
 ```kotlin
-import io.github.kdroidfilter.platformtools.appmanager.getAppInstaller
 
 suspend fun performAppInstallation(appFile: File) {
     val appInstaller = getAppInstaller()
@@ -211,15 +225,6 @@ suspend fun installAppSilently(
 )
 ```
 
-**Parameters:**
-
-- `appFile`: The APK file to be installed.
-- `onResult`: A callback with the installation result. Provides:
-  - `success`: Indicates whether the installation succeeded.
-  - `message`: An optional message with additional context (e.g., error details).
-
----
-
 ## Additional Functions (Jvm & Android)
 
 The `AppManager` module also provides the following utility functions for JVM and Android platforms:
@@ -240,22 +245,30 @@ Checks if the application version has changed since the last time it was opened.
 fun hasAppVersionChanged(): Boolean
 ```
 
+### `isFirstInstallation`
+
+Checks if it is the first installation of the app. This function can be used to perform setup actions or show onboarding screens.
+
+```kotlin
+fun isFirstInstallation(): Boolean
+```
+
 **Example Usage:**
 
 ```kotlin
-import io.github.kdroidfilter.platformtools.appmanager.restartApplication
-import io.github.kdroidfilter.platformtools.appmanager.hasAppVersionChanged
+  if (hasAppVersionChanged()) {
+      println("The application has been updated.")
+      // Perform actions required after an update
+  } else {
+      println("No updates detected.")
+  }
 
-fun handleAppUpdate() {
-    if (hasAppVersionChanged()) {
-        println("The application has been updated.")
-        // Perform actions required after an update
-    } else {
-        println("No updates detected.")
-    }
-}
-
-
+  if (isFirstInstallation()) {
+    println("This is the first installation of the app.")
+  // Perform any necessary setup actions here
+  } else {
+    println("The app has been installed before.")
+  }
 ```
 
 This library is available on Maven Central. To include it in your project, add the following dependency to your `build.gradle.kts` or `build.gradle` file:
@@ -265,174 +278,133 @@ implementation("io.github.kdroidfilter:platformtools.appmanager:0.2.0")
 ```
 
 
-## 🌟 Modules
+##  Release Fetcher
 
-### Core
+### Overview
 
-The main goal of this library is to serve as a versatile toolkit for implementing platform-specific utilities. While this approach might seem contrary to the expect/actual pattern of Kotlin Multiplatform, PlatformTools fills a specific gap:
+This module simplifies application downloads for the target platform and streamlines new release management.
 
-- It enables operating system detection for multiplatform environments such as JVM, WASM, or JS, where direct OS detection is not always straightforward.
-- It allows OS detection in common code for minor functionalities where embedding such logic can be beneficial.
+### `Downloader` Class
 
-The core module provides tools for platform detection, including support for enums to represent different platforms:
+The `Downloader` class is a core component of the **Release Fetcher** module, designed to download application files from a given URL while tracking the download progress.
 
-```kotlin
-import io.github.kdroidfilter.platformtools.Platform
-import io.github.kdroidfilter.platformtools.getOperatingSystem
+### Main Functionality
+- **File Downloading:**
+  - The primary method, `downloadApp`, accepts a URL and downloads the associated file.
+  - It provides real-time updates on the download progress through a callback `onProgress`, reporting a percentage (from 0.0 to 100.0) and the local file when available.
+  - In case of an error, the progress percentage is set to `-1.0`.
 
-val operatingSystem = getOperatingSystem()
-println("Current operating system: $operatingSystem")
-```
+### Technical Highlights
+- **Error Handling:** Comprehensive handling of network or file errors with detailed error logging.
+- **Optimized Downloading:** Uses a configurable buffer for efficient file writing.
+- **Coroutine Compatibility:** The method is `suspend`, making it ideal for use with Kotlin Coroutines.
 
-Additional platform-specific functions available for Android and JVM:
+---
 
-```kotlin
-expect fun getCacheDir(): File
-expect fun getAppVersion(): String
-```
-
-#### Example Usage
+### Usage Example
+Here is how you can use the `Downloader` class:
 
 ```kotlin
-// Retrieve the cache directory
-val cacheDir = getCacheDir()
-println("Cache directory path: ${cacheDir.absolutePath}")
+fun main() = runBlocking {
+    val downloader = Downloader()
+    val url = "https://example.com/app-release.apk"
 
-// Retrieve the current app version
-val appVersion = getAppVersion()
-println("Current app version: $appVersion")
+    val success = downloader.downloadApp(url) { progress, file ->
+        when {
+            progress == -1.0 -> println("Error during download.")
+            progress == 100.0 -> println("Download complete: ${file?.absolutePath}")
+            else -> println("Progress: ${"%.2f".format(progress)}%")
+        }
+    }
 
-// Android-specific: Retrieve another app's version
-val packageName = "com.example.otherapp"
-val otherAppVersion = getAppVersion(packageName)
-println("Other app version: $otherAppVersion")
-```
-
-### AppManager (JVM and Android only)
-
-The appmanager module provides an interface for managing application installation and uninstallation. For each platform, the required file format is as follows:
-
-- **Android**: APK file
-- **Windows**: MSI file
-- **Linux**: DEB file
-- **Mac**: PKG file
-
-```kotlin
-import io.github.kdroidfilter.platformtools.appmanager.getAppInstaller
-import java.io.File
-
-val appInstaller = getAppInstaller()
-
-// Check if the app can request permission to install packages
-val canRequest = appInstaller.canRequestInstallPackages()
-println("Can request install packages permission: $canRequest")
-
-// Request permission to install packages
-appInstaller.requestInstallPackagesPermission()
-
-// Install an application
-val appFile = File("/path/to/app.apk")
-appInstaller.installApp(appFile) { success, message ->
-  if (success) {
-    println("Installation successful")
-  } else {
-    println("Installation failed: $message")
-  }
-}
-
-// Uninstall an app by package name (Android only)
-appInstaller.uninstallApp("com.example.app") { success, message ->
-  if (success) {
-    println("Uninstallation started: $message")
-  } else {
-    println("Failed to uninstall: $message")
-  }
-}
-
-// Uninstall the current app (Android only)
-appInstaller.uninstallApp { success, message ->
-  if (success) {
-    println("Uninstallation started: $message")
-  } else {
-    println("Failed to uninstall: $message")
-  }
-}
-```
-
-On **Windows**, you can configure the installation of an app by setting `WindowsConfig.requireAdmin` to `true` or `false` depending on your needs. By default, this value is `true`. For example:
-
-```kotlin
-WindowsConfig.requireAdmin = false
-```
-
-### ReleaseFetcher
-
-The releasefetcher module simplifies release management with GitHub:
-
-```kotlin
-import io.github.kdroidfilter.platformtools.releasefetcher.github.GitHubReleaseFetcher
-
-val releaseFetcher = GitHubReleaseFetcher(owner = "owner", repo = "repo")
-
-// Check for updates
-releaseFetcher.checkForUpdate { latestVersion, changelog ->
-  println("New version available: $latestVersion")
-  println("Changelog: $changelog")
-}
-
-// Fetch download link for the current platform
-val release = releaseFetcher.getLatestRelease()
-val downloadLink = releaseFetcher.getDownloadLinkForPlatform(release!!)
-println("Download link: $downloadLink")
-```
-
-#### Downloader
-
-The Downloader class provides functionality for downloading application files with progress tracking:
-
-```kotlin
-import io.github.kdroidfilter.platformtools.releasefetcher.Downloader
-
-val downloader = Downloader()
-
-suspend fun downloadAppFile(downloadUrl: String) {
-  downloader.downloadApp(downloadUrl) { percentage, file ->
-    if (percentage >= 0) {
-      println("Download progress: $percentage%")
+    if (success) {
+        println("Download succeeded!")
     } else {
-      println("Download failed")
+        println("Download failed.")
     }
-
-    file?.let {
-      println("Downloaded file: ${it.absolutePath}")
-    }
-  }
 }
 ```
 
----
+### Configuration
 
-## 📄 Additional Advice
+The `ReleaseFetcherConfig` object allows modification of configuration settings for the downloader:
 
-For Compose Desktop configuration under Windows, you can structure your settings as follows to optimize installation and ensure smooth operation:
+- **Default Configuration:**
+  - `downloaderBufferSize`: `2 * 1024 * 1024` (2 MB)
+  - `clientTimeOut`: `HttpTimeoutConfig.INFINITE_TIMEOUT_MS`
+
+- **Example:** Modifying the default configuration:
 
 ```kotlin
-compose.desktop {
-  application {
-    mainClass = "com.kdroid.sample.MainKt"
-    nativeDistributions {
-      targetFormats(TargetFormat.Msi, TargetFormat.Deb, TargetFormat.Pkg)
-      windows {
-        perUserInstall = true
-      }
+ReleaseFetcherConfig.downloaderBufferSize = 4 * 1024 * 1024 // Set buffer size to 4 MB
+ReleaseFetcherConfig.clientTimeOut = 60_000 // Set client timeout to 60 seconds
+```
+
+### `GitHubReleaseFetcher` Class
+
+The `GitHubReleaseFetcher` class is a key utility in the **Release Fetcher** module that interacts with the GitHub API to fetch release information, check for updates, and retrieve platform-specific download links.
+
+### Main Functionality
+
+- **Fetch Latest Release:**
+  - The `getLatestRelease` method uses the GitHub API to fetch the latest release for a given repository.
+  - Handles HTTP responses and parses the response body into a `Release` object.
+
+- **Check for Updates:**
+  - The `checkForUpdate` method compares the latest release version with the current application version.
+  - The comparison is made using the release name (`tag_name`) of the latest GitHub release and the application's version.
+  - If a newer version is available, it triggers a callback with the new version and changelog.
+
+- **Platform-Specific Download Links:**
+  - The `getDownloadLinkForPlatform` method provides the appropriate download link based on the current operating system.
+  - Supports Android (`.apk`), Windows (`.msi`), Linux (`.deb`), and macOS (`.dmg`).
+
+### Important Note
+
+- The GitHub repository must contain at least one release.
+- The release name (`tag_name`) in the repository is critical as it is compared to the application's current version.
+- Ensure the GitHub repository is configured correctly to include meaningful release names and assets.
+
+### Technical Highlights
+
+- **Error Handling:** Logs exceptions during API calls and ensures resilience against network errors.
+- **Ktor Integration:** Utilizes Ktor for HTTP requests to interact with the GitHub API.
+- **Coroutine Compatibility:** Methods are `suspend`, ensuring asynchronous operation without blocking threads.
+
+---
+
+### Usage Example
+Here is how you can use the `GitHubReleaseFetcher` class:
+
+```kotlin
+fun main() = runBlocking {
+    val fetcher = GitHubReleaseFetcher(owner = "ownerName", repo = "repoName")
+
+    // Fetch the latest release
+    val latestRelease = fetcher.getLatestRelease()
+    if (latestRelease != null) {
+        println("Latest version: ${latestRelease.tag_name}")
+        println("Changelog: ${latestRelease.body}")
+
+        // Get platform-specific download link
+        val downloadLink = fetcher.getDownloadLinkForPlatform(latestRelease)
+        if (downloadLink != null) {
+            println("Download here: $downloadLink")
+        } else {
+            println("No suitable download link for the current platform.")
+        }
+    } else {
+        println("Failed to fetch the latest release.")
     }
-  }
+
+    // Check for updates
+    fetcher.checkForUpdate { latestVersion, changelog ->
+        println("Update available: $latestVersion")
+        println("Changelog: $changelog")
+    }
 }
 ```
 
-Setting `perUserInstall = true` avoids requiring admin rights during installation and enables background updates. **Note:** This feature is not feasible on Linux or Mac.
-
----
 
 ## 🛒 License
 
