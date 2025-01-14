@@ -31,6 +31,7 @@ dependencyResolutionManagement {
 include(":platformtools:core")
 include(":platformtools:appmanager")
 include(":platformtools:releasefetcher")
+include(":platformtools:permissionhandler")
 include(":sample:composeApp")
 include(":sample:terminalApp")
 

@@ -3,28 +3,6 @@ package io.github.kdroidfilter.platformtools.appmanager
 import java.io.File
 
 interface AppInstaller {
-    /**
-     * Checks whether the application has the necessary permission to request the installation of packages.
-     *
-     * This method determines if the app can prompt the user to grant permission
-     * to install APK files from unknown sources.
-     *
-     * @return A Boolean value indicating whether the app can request the install packages permission.
-     */
-    suspend fun canRequestInstallPackages(): Boolean
-
-    /**
-     * Requests the permission to install packages from unknown sources.
-     *
-     * This method triggers a system prompt or redirect to the appropriate settings,
-     * allowing the user to grant the app the necessary permission to install APK files.
-     * It should be used prior to invoking app installation functionality if the
-     * required permission is not already granted.
-     *
-     * Note: Ensure to first check whether the app can already request install
-     * packages permission using [canRequestInstallPackages] before calling this method.
-     */
-    suspend fun requestInstallPackagesPermission()
 
     /**
      * Installs an application from the specified file.

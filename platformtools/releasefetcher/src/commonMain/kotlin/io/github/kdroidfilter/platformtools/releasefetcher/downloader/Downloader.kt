@@ -14,7 +14,6 @@ import java.io.File
 
 private val logger = KotlinLogging.logger {}
 
-private const val BUFFER_SIZE = 2621440
 
 /**
  * Downloader is responsible for handling file downloads from a given URL.
@@ -37,6 +36,7 @@ class Downloader {
         downloadUrl: String,
         onProgress: (percentage: Double, file: File?) -> Unit
     ): Boolean {
+        val bufferSize = ReleaseFetcherConfig.downloaderBufferSize
         logger.debug { "Starting download from URL: $downloadUrl" }
 
         val fileName = downloadUrl.substringAfterLast('/').substringBefore('?')
@@ -63,8 +63,8 @@ class Downloader {
                 logger.debug { "Content length: $contentLength bytes" }
 
                 withContext(Dispatchers.IO) {
-                    destinationFile.outputStream().buffered(BUFFER_SIZE).use { output ->
-                        val buffer = ByteArray(BUFFER_SIZE)
+                    destinationFile.outputStream().buffered(bufferSize).use { output ->
+                        val buffer = ByteArray(bufferSize)
                         while (!channel.isClosedForRead) {
                             val bytesRead = channel.readAvailable(buffer)
                             if (bytesRead == -1) break

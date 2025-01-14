@@ -22,9 +22,11 @@ kotlin {
             implementation(compose.ui)
             implementation(compose.components.resources)
             implementation(compose.components.uiToolingPreview)
+            implementation(libs.navigation.compose)
             implementation(project(":platformtools:core"))
             implementation(project(":platformtools:appmanager"))
             implementation(project(":platformtools:releasefetcher"))
+            implementation(project(":platformtools:permissionhandler"))
         }
 
         androidMain.dependencies {
@@ -48,7 +50,7 @@ android {
 
         applicationId = "sample.app.androidApp"
         versionCode = 1
-        versionName = "0.1.0"
+        versionName = "1.0.1"
     }
 }
 

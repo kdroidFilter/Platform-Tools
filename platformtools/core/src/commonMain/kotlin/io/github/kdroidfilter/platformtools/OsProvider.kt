@@ -1,7 +1,5 @@
 package io.github.kdroidfilter.platformtools
 
-
-
 /**
  * Represents the operating systems a device or environment can run.
  *
@@ -19,8 +17,6 @@ package io.github.kdroidfilter.platformtools
 enum class OperatingSystem {
     WINDOWS, MACOS, LINUX, ANDROID, IOS, UNKNOWN
 }
-
-
 
 /**
  * Determines the operating system on which the application is currently running.

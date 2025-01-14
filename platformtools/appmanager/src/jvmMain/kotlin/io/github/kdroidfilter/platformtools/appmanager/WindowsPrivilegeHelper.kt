@@ -11,7 +11,7 @@ import java.io.InputStreamReader
  * @property requireAdmin Indicates whether administrator privileges are required
  *                        for certain operations on the Windows platform. Defaults to `true`.
  */
-object WindowsConfig {
+object WindowsInstallerConfig {
     var requireAdmin: Boolean = true
 }
 
@@ -118,7 +118,7 @@ object WindowsPrivilegeHelper {
         installerFile: File,
         onResult: (Boolean, String?) -> Unit
     ) {
-        val requireAdmin = WindowsConfig.requireAdmin
+        val requireAdmin = WindowsInstallerConfig.requireAdmin
         // 1. Check if admin privileges are explicitly required
         if (requireAdmin && !isProcessElevated()) {
             // If admin rights are required and we are not in admin mode,

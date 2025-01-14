@@ -3,12 +3,12 @@ package io.github.kdroidfilter.platformtools
 fun getUserAgent(): String =
     js("window.navigator.userAgent")
 
-fun getPlatform(): String =
+fun getOs(): String =
     js("window.navigator.platform")
 
 actual fun getOperatingSystem(): OperatingSystem {
     val userAgent = getUserAgent()
-    val platform = getPlatform()
+    val platform = getOs()
 
     return when {
         userAgent.contains("Windows", ignoreCase = true) -> OperatingSystem.WINDOWS
