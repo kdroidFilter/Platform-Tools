@@ -40,7 +40,7 @@ kotlin {
 
         }
         wasmJsMain.dependencies {
-            implementation("org.jetbrains.kotlinx:kotlinx-browser-wasm-js:0.3")
+            implementation(libs.kotlinx.browser.wasm.js)
 
         }
 
