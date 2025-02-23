@@ -1,3 +1,4 @@
+import com.vanniktech.maven.publish.SonatypeHost
 
 plugins {
     alias(libs.plugins.multiplatform)
@@ -47,4 +48,44 @@ android {
     defaultConfig {
         minSdk = 21
     }
+}
+
+mavenPublishing {
+    coordinates(
+        groupId = "io.github.kdroidfilter",
+        artifactId = "platformtools.darkmode",
+        version = version.toString()
+    )
+
+    pom {
+        name.set("PlatformTools Dark Mode")
+        description.set("Dark Mode Detection module for PlatformTools, a Kotlin Multiplatform library for managing platform-specific utilities and tools.")
+        inceptionYear.set("2025")
+        url.set("https://github.com/kdroidFilter/")
+
+        licenses {
+            license {
+                name.set("MIT License")
+                url.set("https://opensource.org/licenses/MIT")
+            }
+        }
+
+        developers {
+            developer {
+                id.set("kdroidfilter")
+                name.set("Elyahou Hadass")
+                email.set("elyahou.hadass@gmail.com")
+            }
+        }
+
+        scm {
+            connection.set("scm:git:git://github.com/kdroidFilter/platformtools.git")
+            developerConnection.set("scm:git:ssh://git@github.com:kdroidFilter/platformtools.git")
+            url.set("https://github.com/kdroidFilter/platformtools")
+        }
+    }
+
+    publishToMavenCentral(SonatypeHost.CENTRAL_PORTAL)
+
+    signAllPublications()
 }
