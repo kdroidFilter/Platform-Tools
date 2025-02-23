@@ -6,7 +6,7 @@ import com.sun.jna.Pointer
 import com.sun.jna.platform.win32.WinDef.HWND
 import com.sun.jna.win32.W32APIOptions
 
-interface DwmApi : Library {
+internal interface DwmApi : Library {
     companion object {
         val INSTANCE: DwmApi = Native.load("dwmapi", DwmApi::class.java, W32APIOptions.DEFAULT_OPTIONS)
         const val DWMWA_USE_IMMERSIVE_DARK_MODE = 20
