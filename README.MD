@@ -85,7 +85,7 @@ println("App version: $version")
 This library is available on Maven Central. To include this library in your project, add the following dependency to your `build.gradle.kts`:
 
 ```kotlin
-implementation("io.github.kdroidfilter:platformtools.core:0.2.5")
+implementation("io.github.kdroidfilter:platformtools.core:0.2.6")
 ```
 
 ## 🌙 Dark Mode Detection Module
@@ -185,7 +185,7 @@ On Linux, the title bar updates correctly with system-wide dark mode settings, s
 This library is available on Maven Central. To include this module in your project, add the following dependency to your `build.gradle.kts`:
 
 ```kotlin
-implementation("io.github.kdroidfilter:platformtools.darkmode:0.2.5")
+implementation("io.github.kdroidfilter:platformtools.darkmodedetector:0.2.6")
 ```
 
 ---
@@ -377,7 +377,7 @@ fun isFirstInstallation(): Boolean
 This library is available on Maven Central. To include it in your project, add the following dependency to your `build.gradle.kts` :
 
 ```kotlin
-implementation("io.github.kdroidfilter:platformtools.appmanager:0.2.5")
+implementation("io.github.kdroidfilter:platformtools.appmanager:0.2.6")
 ```
 
 ---
@@ -508,7 +508,7 @@ fun main() = runBlocking {
 This library is available on Maven Central. To include it in your project, add the following dependency to your `build.gradle.kts`:
 
 ```kotlin
-implementation("io.github.kdroidfilter:platformtools.releasefetcher:0.2.5")
+implementation("io.github.kdroidfilter:platformtools.releasefetcher:0.2.6")
 ```
 
 ---
@@ -701,7 +701,7 @@ fun checkAndRequestReadExternalStoragePermission() {
 This library is available on Maven Central. To include it in your project, add the following dependency to your `build.gradle.kts` :
 
 ```kotlin
-implementation("io.github.kdroidfilter:platformtools.permissionhandler:0.2.5")
+implementation("io.github.kdroidfilter:platformtools.permissionhandler:0.2.6")
 ```
 
 ---

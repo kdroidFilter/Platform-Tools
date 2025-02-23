@@ -8,6 +8,12 @@ plugins {
     alias(libs.plugins.vannitktech.maven.publish)
 }
 
+val libVersion : String by rootProject.extra
+
+group = "io.github.kdroidfilter.platformtools.darkmodedetector"
+version = libVersion
+
+
 kotlin {
     jvmToolchain(17)
 
@@ -53,7 +59,7 @@ android {
 mavenPublishing {
     coordinates(
         groupId = "io.github.kdroidfilter",
-        artifactId = "platformtools.darkmode",
+        artifactId = "platformtools.darkmodedetector",
         version = version.toString()
     )
 
