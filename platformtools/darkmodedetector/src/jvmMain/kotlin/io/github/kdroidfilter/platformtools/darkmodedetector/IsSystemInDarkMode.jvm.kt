@@ -12,15 +12,12 @@ import io.github.kdroidfilter.platformtools.getOperatingSystem
 @Composable
 actual fun isSystemInDarkMode(): Boolean {
     return when (getOperatingSystem()) {
-        OperatingSystem.MACOS -> ismacOsInDarkMode()
+        OperatingSystem.MACOS -> isMacOsInDarkMode()
         OperatingSystem.WINDOWS -> {
             logger.debug { "Using Windows dark mode detection logic (placeholder)" }
             false
         }
-        OperatingSystem.LINUX -> {
-            logger.debug { "Using Linux dark mode detection logic (placeholder)" }
-            false
-        }
+        OperatingSystem.LINUX -> isLinuxOsInDarkMode()
         else -> false
     }
 }

@@ -1,3 +1,6 @@
+// Inspired by the code from the jSystemThemeDetector project:
+// https://github.com/Dansoftowner/jSystemThemeDetector/blob/master/src/main/java/com/jthemedetecor/MacOSThemeDetector.java
+
 package io.github.kdroidfilter.platformtools.darkmodedetector
 
 import androidx.compose.runtime.Composable
@@ -130,7 +133,7 @@ object MacOSThemeDetector {
  * updating automatically when the system theme changes.
  */
 @Composable
-fun ismacOsInDarkMode(): Boolean {
+fun isMacOsInDarkMode(): Boolean {
     val darkModeState = remember { mutableStateOf(MacOSThemeDetector.isDark()) }
     DisposableEffect(Unit) {
         logger.debug { "Registering macOS dark mode listener in Compose" }
