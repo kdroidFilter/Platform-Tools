@@ -2,6 +2,9 @@ package io.github.kdroidfilter.platformtools.darkmodedetector
 
 import androidx.compose.runtime.Composable
 import io.github.kdroidfilter.platformtools.OperatingSystem
+import io.github.kdroidfilter.platformtools.darkmodedetector.linux.isLinuxInDarkMode
+import io.github.kdroidfilter.platformtools.darkmodedetector.mac.isMacOsInDarkMode
+import io.github.kdroidfilter.platformtools.darkmodedetector.windows.isWindowsInDarkMode
 import io.github.kdroidfilter.platformtools.getOperatingSystem
 
 
