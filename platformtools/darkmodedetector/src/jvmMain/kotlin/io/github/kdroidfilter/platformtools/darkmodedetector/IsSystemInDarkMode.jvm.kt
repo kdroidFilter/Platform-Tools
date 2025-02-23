@@ -13,11 +13,8 @@ import io.github.kdroidfilter.platformtools.getOperatingSystem
 actual fun isSystemInDarkMode(): Boolean {
     return when (getOperatingSystem()) {
         OperatingSystem.MACOS -> isMacOsInDarkMode()
-        OperatingSystem.WINDOWS -> {
-            logger.debug { "Using Windows dark mode detection logic (placeholder)" }
-            false
-        }
-        OperatingSystem.LINUX -> isLinuxOsInDarkMode()
+        OperatingSystem.WINDOWS -> isWindowsInDarkMode()
+        OperatingSystem.LINUX -> isLinuxInDarkMode()
         else -> false
     }
 }

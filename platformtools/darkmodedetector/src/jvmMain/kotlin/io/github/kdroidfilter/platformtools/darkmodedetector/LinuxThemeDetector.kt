@@ -14,7 +14,7 @@ import java.util.function.Consumer
 //* GTK theme changes in real-time. When "gtk-theme" or "color-scheme" lines are detected,
 //* it checks if the new theme is dark and notifies registered listeners if there's a change.
 //
-object LinuxThemeDetector {
+internal object LinuxThemeDetector {
     // Commands for monitoring and retrieving the current GTK theme
     private const val MONITORING_CMD = "gsettings monitor org.gnome.desktop.interface"
     private val GET_CMD = arrayOf(
@@ -179,7 +179,7 @@ object LinuxThemeDetector {
  * and automatically updates the Compose state when a new line indicates a different theme.
  */
 @Composable
-fun isLinuxOsInDarkMode(): Boolean {
+internal fun isLinuxInDarkMode(): Boolean {
     val darkModeState = remember { mutableStateOf(LinuxThemeDetector.isDark()) }
 
     DisposableEffect(Unit) {

@@ -23,7 +23,7 @@ internal val logger = KotlinLogging.logger {}
  * to detect theme changes in macOS. It reads the system preference "AppleInterfaceStyle"
  * (which is "Dark" when in dark mode) from NSUserDefaults.
  */
-object MacOSThemeDetector {
+internal object MacOSThemeDetector {
 
     // Set of listeners to notify when the theme changes (true = dark, false = light)
     private val listeners: MutableSet<Consumer<Boolean>> = ConcurrentHashMap.newKeySet()
@@ -133,7 +133,7 @@ object MacOSThemeDetector {
  * updating automatically when the system theme changes.
  */
 @Composable
-fun isMacOsInDarkMode(): Boolean {
+internal fun isMacOsInDarkMode(): Boolean {
     val darkModeState = remember { mutableStateOf(MacOSThemeDetector.isDark()) }
     DisposableEffect(Unit) {
         logger.debug { "Registering macOS dark mode listener in Compose" }
