@@ -88,6 +88,111 @@ This library is available on Maven Central. To include this library in your proj
 implementation("io.github.kdroidfilter:platformtools.core:0.2.0")
 ```
 
+## 🌙 Dark Mode Detection Module
+
+The **Dark Mode Detection** module of PlatformTools enhances theme management by introducing a reactive function, `isSystemInDarkMode`, that accurately detects system-wide dark mode settings across all supported platforms.
+
+### ⚙️ Function: `isSystemInDarkMode`
+
+The `isSystemInDarkMode` function determines whether the system is currently in dark mode. Unlike `isSystemInDarkTheme`, which is not reactive on desktop platforms, `isSystemInDarkMode` provides real-time updates when the system's theme changes.
+
+#### 🔍 How It Works
+
+- On **desktop platforms (Windows, macOS, Linux)**, `isSystemInDarkMode` utilizes [JNA (Java Native Access)](https://github.com/java-native-access/jna) to detect and react to dark mode changes dynamically.
+- On **other platforms (Android, iOS, JVM, JavaScript, WebAssembly)**, `isSystemInDarkMode` falls back to `isSystemInDarkTheme`, ensuring compatibility across all targets.
+- This makes `isSystemInDarkMode` a **fully cross-platform and reactive solution** for detecting dark mode preferences in a Kotlin Multiplatform project.
+
+```kotlin
+fun isSystemInDarkMode(): Boolean
+```
+
+### 🔧 Example Usage
+
+Here is an example of using `isSystemInDarkMode` in a Jetpack Compose-based UI:
+
+```kotlin
+MaterialTheme(
+    colorScheme = if (isSystemInDarkMode()) darkColorScheme() else lightColorScheme()
+) {
+    // Your UI content
+}
+```
+
+This allows automatic adaptation of the UI theme based on the system’s dark mode setting, ensuring a seamless user experience.
+
+### 🔗 Comparison with `isSystemInDarkTheme`
+
+| Function | Reactive | Desktop Support | Other Platforms |
+|----------|----------|----------------|----------------|
+| `isSystemInDarkTheme` | ❌ No | ❌ Not reactive | ✅ Yes |
+| `isSystemInDarkMode` | ✅ Yes | ✅ Fully supported (via JNA) | ✅ Yes (fallback to `isSystemInDarkTheme`) |
+
+---
+
+## 🎨 Adaptive Title Bar Support
+
+On **Windows and macOS**, the application title bar does not automatically update based on dark mode settings. PlatformTools provides solutions for ensuring adaptive title bars.
+
+### 🖥️ Windows Support
+
+For Windows, use the following function to enable an adaptive title bar:
+
+```kotlin
+fun Window.setWindowsAdaptiveTitleBar(dark: Boolean = isSystemInDarkMode())
+```
+
+Example usage in a Jetpack Compose for Desktop application:
+
+```kotlin
+Window(
+    title = "sample",
+    state = rememberWindowState(width = 800.dp, height = 600.dp),
+    onCloseRequest = ::exitApplication,
+) {
+    window.minimumSize = Dimension(350, 600)
+    window.setWindowsAdaptiveTitleBar()
+    App()
+}
+```
+
+### 🍏 macOS Support
+
+On macOS, enabling an adaptive title bar requires adding the following configuration in the `gradle.build.kts` file:
+
+```kotlin
+compose.desktop {
+    application {
+        mainClass = "MainKt"
+        nativeDistributions {
+            macOS {
+                jvmArgs(
+                    "-Dapple.awt.application.appearance=system"
+                )
+            }
+        }
+    }
+}
+```
+
+### 🐧 Linux Support
+
+On Linux, the title bar updates correctly with system-wide dark mode settings, so no additional configuration is required.
+
+---
+
+## 📦 Installation
+
+This library is available on Maven Central. To include this module in your project, add the following dependency to your `build.gradle.kts`:
+
+```kotlin
+implementation("io.github.kdroidfilter:platformtools.darkmode:0.3.0")
+```
+
+---
+
+With `isSystemInDarkMode`, your Kotlin Multiplatform projects can now dynamically react to dark mode changes on all supported platforms. 🚀
+
+
 ## 🔧 AppManager Module (Jvm & Android only)
 
 The **AppManager** module of the KMP Platform Tools library provides utilities to manage application-level information and configurations across multiple platforms. Below, we will detail the functionality and demonstrate usage of the provided features.
