@@ -16,7 +16,7 @@ import java.util.function.Consumer
 import java.util.regex.Pattern
 
 // Initialize logger using kotlin-logging
-internal val logger = KotlinLogging.logger {}
+private val logger = KotlinLogging.logger {}
 
 /**
  * MacOSThemeDetector registers an observer with NSDistributedNotificationCenter

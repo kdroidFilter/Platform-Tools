@@ -14,8 +14,12 @@ import com.sun.jna.platform.win32.WinNT
 import com.sun.jna.platform.win32.WinNT.KEY_READ
 import com.sun.jna.platform.win32.WinReg
 import com.sun.jna.platform.win32.WinReg.HKEY
+import io.github.oshai.kotlinlogging.KotlinLogging
 import java.util.concurrent.ConcurrentHashMap
 import java.util.function.Consumer
+
+// Initialize logger using kotlin-logging
+private val logger = KotlinLogging.logger {}
 
 /**
  * WindowsThemeDetector uses JNA to read the Windows registry value:

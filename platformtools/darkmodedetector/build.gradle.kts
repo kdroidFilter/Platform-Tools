@@ -34,7 +34,7 @@ kotlin {
             implementation(compose.desktop.currentOs)
             implementation(libs.jna)
             implementation(libs.jna.platform)
-            implementation("de.jangassen:jfa:1.1.10")
+            implementation(libs.jfa)
             implementation(libs.kotlin.logging)
         }
 

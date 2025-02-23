@@ -4,10 +4,14 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.DisposableEffect
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
+import io.github.oshai.kotlinlogging.KotlinLogging
 import java.io.BufferedReader
 import java.io.InputStreamReader
 import java.util.concurrent.ConcurrentHashMap
 import java.util.function.Consumer
+
+// Initialize logger using kotlin-logging
+private val logger = KotlinLogging.logger {}
 
 //**
 //* LinuxThemeDetector uses "gsettings monitor org.gnome.desktop.interface" to track
