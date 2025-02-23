@@ -7,14 +7,16 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.DisposableEffect
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
-import com.sun.jna.platform.win32.Advapi32
-import com.sun.jna.platform.win32.Advapi32Util
-import com.sun.jna.platform.win32.WinError
-import com.sun.jna.platform.win32.WinNT
+import com.sun.jna.Native
+import com.sun.jna.platform.win32.*
 import com.sun.jna.platform.win32.WinNT.KEY_READ
-import com.sun.jna.platform.win32.WinReg
 import com.sun.jna.platform.win32.WinReg.HKEY
+import com.sun.jna.ptr.IntByReference
+import io.github.kdroidfilter.platformtools.OperatingSystem
+import io.github.kdroidfilter.platformtools.darkmodedetector.isSystemInDarkMode
+import io.github.kdroidfilter.platformtools.getOperatingSystem
 import io.github.oshai.kotlinlogging.KotlinLogging
+import java.awt.Window
 import java.util.concurrent.ConcurrentHashMap
 import java.util.function.Consumer
 
@@ -23,13 +25,12 @@ internal val windowsLogger = KotlinLogging.logger {}
 
 /**
  * WindowsThemeDetector uses JNA to read the Windows registry value:
- *   HKEY_CURRENT_USER\Software\Microsoft\Windows\CurrentVersion\Themes\Personalize\AppsUseLightTheme
+ * HKEY_CURRENT_USER\Software\Microsoft\Windows\CurrentVersion\Themes\Personalize\AppsUseLightTheme
  *
- * If this value = 0 => Dark mode.
- * If this value = 1 => Light mode.
+ * If this value = 0 => Dark mode. If this value = 1 => Light mode.
  *
- * The detector also monitors the registry for changes in real-time
- * by calling RegNotifyChangeKeyValue on a background thread.
+ * The detector also monitors the registry for changes in real-time by
+ * calling RegNotifyChangeKeyValue on a background thread.
  */
 internal object WindowsThemeDetector {
     private const val REGISTRY_PATH = "Software\\Microsoft\\Windows\\CurrentVersion\\Themes\\Personalize"
@@ -43,7 +44,8 @@ internal object WindowsThemeDetector {
 
     /**
      * Returns true if the system is in dark mode (i.e. registry value is 0),
-     * or false if the system is in light mode (registry value is 1 or doesn't exist).
+     * or false if the system is in light mode (registry value is 1 or doesn't
+     * exist).
      */
     fun isDark(): Boolean {
         // Check if the registry value is 0 for "AppsUseLightTheme"
@@ -52,8 +54,9 @@ internal object WindowsThemeDetector {
     }
 
     /**
-     * Registers a listener. If it's the first listener, we start a background thread
-     * to listen for changes in the registry key via RegNotifyChangeKeyValue.
+     * Registers a listener. If it's the first listener, we start a
+     * background thread to listen for changes in the registry key via
+     * RegNotifyChangeKeyValue.
      */
     fun registerListener(listener: Consumer<Boolean>) {
         synchronized(this) {
@@ -68,7 +71,8 @@ internal object WindowsThemeDetector {
     }
 
     /**
-     * Removes a listener. If no listeners remain, we interrupt the monitoring thread.
+     * Removes a listener. If no listeners remain, we interrupt the monitoring
+     * thread.
      */
     fun removeListener(listener: Consumer<Boolean>) {
         synchronized(this) {
@@ -81,9 +85,10 @@ internal object WindowsThemeDetector {
     }
 
     /**
-     * Creates and starts a background thread that monitors the registry
-     * for changes to the theme key. When a change is detected, it reads the new theme
-     * and notifies the listeners if there's a difference from the previous state.
+     * Creates and starts a background thread that monitors the registry for
+     * changes to the theme key. When a change is detected, it reads the new
+     * theme and notifies the listeners if there's a difference from the
+     * previous state.
      */
     private fun startMonitoringThread() {
         val thread = object : Thread("Windows Theme Detector Thread") {
@@ -152,10 +157,12 @@ internal object WindowsThemeDetector {
 }
 
 /**
- * Composable function that returns whether Windows is currently in dark mode.
+ * Composable function that returns whether Windows is currently in dark
+ * mode.
  *
- * It uses [WindowsThemeDetector] to read the registry value for AppsUseLightTheme.
- * It registers a listener to automatically update the Compose state if the registry changes.
+ * It uses [WindowsThemeDetector] to read the registry
+ * value for AppsUseLightTheme. It registers a listener to
+ * automatically update the Compose state if the registry changes.
  */
 @Composable
 internal fun isWindowsInDarkMode(): Boolean {
@@ -178,4 +185,39 @@ internal fun isWindowsInDarkMode(): Boolean {
     }
 
     return darkModeState.value
+}
+
+/**
+ * Sets the dark mode title bar appearance for a Windows application
+ * window.
+ *
+ * This function attempts to modify the immersive dark mode attribute
+ * for the specified window's title bar using the Windows Desktop Window
+ * Manager API (DWM).
+ *
+ * @param dark Boolean value indicating whether the title bar should use
+ *    dark mode. Defaults to the result of [isWindowsInDarkMode], which
+ *    determines the current system theme preference.
+ */
+@Composable
+fun Window.setWindowsAdaptiveTitleBar(dark: Boolean = isSystemInDarkMode()) {
+    try {
+        if (getOperatingSystem() == OperatingSystem.WINDOWS) {
+            // Get HWND from the AWT Window
+            val hwnd = WinDef.HWND(Native.getComponentPointer(this))
+
+            // Create a pointer to hold the boolean value
+            val darkModeEnabled = IntByReference(if (dark) 1 else 0)
+
+            // Set the window attribute
+            DwmApi.INSTANCE.DwmSetWindowAttribute(
+                hwnd,
+                DwmApi.DWMWA_USE_IMMERSIVE_DARK_MODE,
+                darkModeEnabled.pointer,
+                4 // size of Int
+            )
+        }
+    } catch (e: Exception) {
+        windowsLogger.debug { "Failed to set dark mode: ${e.message}" }
+    }
 }
