@@ -32,6 +32,8 @@ include(":platformtools:core")
 include(":platformtools:appmanager")
 include(":platformtools:releasefetcher")
 include(":platformtools:permissionhandler")
+include(":platformtools:darkmodedetector")
 include(":sample:composeApp")
 include(":sample:terminalApp")
+
 

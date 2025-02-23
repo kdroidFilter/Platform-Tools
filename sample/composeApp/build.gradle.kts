@@ -23,10 +23,12 @@ kotlin {
             implementation(compose.components.resources)
             implementation(compose.components.uiToolingPreview)
             implementation(libs.navigation.compose)
+            implementation(libs.kotlin.logging)
             implementation(project(":platformtools:core"))
             implementation(project(":platformtools:appmanager"))
             implementation(project(":platformtools:releasefetcher"))
             implementation(project(":platformtools:permissionhandler"))
+            implementation(project(":platformtools:darkmodedetector"))
         }
 
         androidMain.dependencies {
@@ -62,6 +64,15 @@ compose.desktop {
             targetFormats(TargetFormat.Dmg, TargetFormat.Msi, TargetFormat.Deb)
             packageName = "sample"
             packageVersion = "1.0.1"
+            macOS {
+                jvmArgs(
+                    "-Dapple.awt.application.appearance=system"
+                )
+            }
+            jvmArgs(
+                "-Dorg.slf4j.simpleLogger.defaultLogLevel=debug"
+            )
         }
+
     }
 }

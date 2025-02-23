@@ -1,7 +1,6 @@
 package sample.app
 
 
-import androidx.compose.foundation.isSystemInDarkTheme
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.padding
@@ -17,6 +16,7 @@ import androidx.navigation.NavHostController
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.compose.rememberNavController
+import io.github.kdroidfilter.platformtools.darkmodedetector.isSystemInDarkMode
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.launch
 import sample.app.permissionHandler.NotificationPermissionSample
@@ -46,7 +46,7 @@ fun App(permissionScreensList: List<PermissionScreen> = sample.app.permissionScr
     )
 
     MaterialTheme(
-        colorScheme = if (isSystemInDarkTheme()) darkColorScheme() else lightColorScheme(),
+        colorScheme = if (isSystemInDarkMode()) darkColorScheme() else lightColorScheme(),
         typography = Typography(),
         content = {
             ModalNavigationDrawer(
