@@ -40,9 +40,6 @@ kotlin {
 
         jvmMain {
             dependsOn(androidJvmMain)
-            dependencies {
-                implementation(libs.androidcontextprovider)
-            }
         }
 
         androidMain {
