@@ -8,6 +8,8 @@ import androidx.compose.runtime.DisposableEffect
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import co.touchlab.kermit.Logger
+import co.touchlab.kermit.Logger.Companion.setMinSeverity
+import co.touchlab.kermit.Severity
 import com.sun.jna.Native
 import com.sun.jna.platform.win32.*
 import com.sun.jna.platform.win32.WinNT.KEY_READ
@@ -21,7 +23,7 @@ import java.util.concurrent.ConcurrentHashMap
 import java.util.function.Consumer
 
 // Initialize logger using kotlin-logging
-internal val windowsLogger = Logger.withTag("WindowsThemeDetector")
+internal val windowsLogger = Logger.withTag("WindowsThemeDetector").apply { setMinSeverity(Severity.Warn) }
 
 /**
  * WindowsThemeDetector uses JNA to read the Windows registry value:

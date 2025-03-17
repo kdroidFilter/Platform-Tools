@@ -11,4 +11,4 @@ subprojects {
     apply(plugin = "org.jetbrains.dokka")
 }
 
-extra["libVersion"] = "0.2.8"
+extra["libVersion"] = "0.2.9"

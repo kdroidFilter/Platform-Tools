@@ -1,12 +1,14 @@
 package io.github.kdroidfilter.platformtools.appmanager
 
 import co.touchlab.kermit.Logger
+import co.touchlab.kermit.Logger.Companion.setMinSeverity
+import co.touchlab.kermit.Severity
 import io.github.kdroidfilter.platformtools.OperatingSystem
 import io.github.kdroidfilter.platformtools.appmanager.WindowsPrivilegeHelper.installOnWindows
 import io.github.kdroidfilter.platformtools.getOperatingSystem
 import java.io.File
 
- val logger = Logger.withTag("AppInstaller")
+ val logger = Logger.withTag("AppInstaller").apply { setMinSeverity(Severity.Warn) }
 
 
 actual fun getAppInstaller(): AppInstaller = DesktopInstaller()

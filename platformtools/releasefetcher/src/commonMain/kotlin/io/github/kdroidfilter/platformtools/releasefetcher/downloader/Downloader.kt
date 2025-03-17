@@ -1,6 +1,8 @@
 package io.github.kdroidfilter.platformtools.releasefetcher.downloader
 
 import co.touchlab.kermit.Logger
+import co.touchlab.kermit.Logger.Companion.setMinSeverity
+import co.touchlab.kermit.Severity
 import io.github.kdroidfilter.platformtools.getCacheDir
 import io.github.kdroidfilter.platformtools.releasefetcher.config.client
 import io.ktor.client.call.*
@@ -12,7 +14,7 @@ import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
 import java.io.File
 
-private val logger = Logger.withTag("Downloader")
+private val logger = Logger.withTag("Downloader").apply { setMinSeverity(Severity.Warn) }
 
 
 /**

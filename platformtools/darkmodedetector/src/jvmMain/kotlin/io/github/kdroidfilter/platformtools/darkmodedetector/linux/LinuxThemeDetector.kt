@@ -5,13 +5,15 @@ import androidx.compose.runtime.DisposableEffect
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import co.touchlab.kermit.Logger
+import co.touchlab.kermit.Logger.Companion.setMinSeverity
+import co.touchlab.kermit.Severity
 import java.io.BufferedReader
 import java.io.InputStreamReader
 import java.util.concurrent.ConcurrentHashMap
 import java.util.function.Consumer
 
 // Initialize logger using kotlin-logging
-private val linuxLogger = Logger.withTag("LinuxThemeDetector")
+private val linuxLogger = Logger.withTag("LinuxThemeDetector").apply { setMinSeverity(Severity.Warn) }
 
 //**
 //* LinuxThemeDetector uses "gsettings monitor org.gnome.desktop.interface" to track

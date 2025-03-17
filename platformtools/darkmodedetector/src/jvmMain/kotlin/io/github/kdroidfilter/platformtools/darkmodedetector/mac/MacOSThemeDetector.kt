@@ -8,6 +8,8 @@ import androidx.compose.runtime.DisposableEffect
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import co.touchlab.kermit.Logger
+import co.touchlab.kermit.Logger.Companion.setMinSeverity
+import co.touchlab.kermit.Severity
 import de.jangassen.jfa.foundation.Foundation
 import de.jangassen.jfa.foundation.ID
 import java.util.concurrent.ConcurrentHashMap
@@ -16,7 +18,7 @@ import java.util.function.Consumer
 import java.util.regex.Pattern
 
 // Initialize logger using kotlin-logging
-private val macLogger = Logger.withTag("MacOSThemeDetector")
+private val macLogger = Logger.withTag("MacOSThemeDetector").apply { setMinSeverity(Severity.Warn) }
 
 /**
  * MacOSThemeDetector registers an observer with NSDistributedNotificationCenter
