@@ -41,7 +41,7 @@ kotlin {
             implementation(libs.jna)
             implementation(libs.jna.platform)
             implementation(libs.jfa)
-            implementation(libs.kotlin.logging)
+            implementation(libs.kermit)
         }
 
     }

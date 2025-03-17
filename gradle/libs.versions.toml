@@ -3,17 +3,17 @@
 androidcontextprovider = "1.0.1"
 jfa = "1.1.10"
 jna = "5.16.0"
-kotlin = "2.1.0"
+kermit = "2.0.4"
+kotlin = "2.1.10"
 agp = "8.6.1"
 compose = "1.7.3"
-androidx-activityCompose = "1.10.0"
-kotlinLogging = "7.0.3"
+androidx-activityCompose = "1.10.1"
 kotlinxBrowserWasmJs = "0.3"
 kotlinxCoroutinesCore = "1.10.1"
 core = "1.15.0"
-activityKtx = "1.10.0"
-ktor = "3.0.3"
-navigationCompose = "2.8.0-alpha11"
+activityKtx = "1.10.1"
+ktor = "3.1.0"
+navigationCompose = "2.8.0-alpha12"
 slf4jSimple = "2.0.16"
 
 
@@ -26,7 +26,7 @@ androidx-activityCompose = { module = "androidx.activity:activity-compose", vers
 jfa = { module = "de.jangassen:jfa", version.ref = "jfa" }
 jna = { module = "net.java.dev.jna:jna", version.ref = "jna" }
 jna-platform = { module = "net.java.dev.jna:jna-platform", version.ref = "jna" }
-kotlin-logging = { module = "io.github.oshai:kotlin-logging", version.ref = "kotlinLogging" }
+kermit = { module = "co.touchlab:kermit", version.ref = "kermit" }
 kotlinx-browser-wasm-js = { module = "org.jetbrains.kotlinx:kotlinx-browser-wasm-js", version.ref = "kotlinxBrowserWasmJs" }
 kotlinx-coroutines-core = { module = "org.jetbrains.kotlinx:kotlinx-coroutines-core", version.ref = "kotlinxCoroutinesCore" }
 kotlinx-serialization-json = { module = "org.jetbrains.kotlinx:kotlinx-serialization-json", version = "1.8.0" }
@@ -47,5 +47,5 @@ compose = { id = "org.jetbrains.compose", version.ref = "compose" }
 compose-compiler = { id = "org.jetbrains.kotlin.plugin.compose", version.ref = "kotlin" }
 android-application = { id = "com.android.application", version.ref = "agp" }
 kotlinx-serialization = { id = "org.jetbrains.kotlin.plugin.serialization", version.ref = "kotlin" }
-vannitktech-maven-publish = {id = "com.vanniktech.maven.publish", version = "0.30.0"}
+vannitktech-maven-publish = {id = "com.vanniktech.maven.publish", version = "0.31.0"}
 dokka = { id = "org.jetbrains.dokka" , version = "2.0.0"}

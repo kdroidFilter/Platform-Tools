@@ -22,7 +22,7 @@ kotlin {
         commonMain.dependencies {
             implementation(project(":platformtools:core"))
             implementation(libs.kotlinx.coroutines.core)
-            implementation(libs.kotlin.logging)
+            implementation("co.touchlab:kermit:2.0.4") //Add latest version
         }
 
         commonTest.dependencies {

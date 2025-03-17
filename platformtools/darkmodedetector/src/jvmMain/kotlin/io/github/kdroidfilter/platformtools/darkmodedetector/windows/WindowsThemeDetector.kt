@@ -7,6 +7,7 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.DisposableEffect
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
+import co.touchlab.kermit.Logger
 import com.sun.jna.Native
 import com.sun.jna.platform.win32.*
 import com.sun.jna.platform.win32.WinNT.KEY_READ
@@ -15,13 +16,12 @@ import com.sun.jna.ptr.IntByReference
 import io.github.kdroidfilter.platformtools.OperatingSystem
 import io.github.kdroidfilter.platformtools.darkmodedetector.isSystemInDarkMode
 import io.github.kdroidfilter.platformtools.getOperatingSystem
-import io.github.oshai.kotlinlogging.KotlinLogging
 import java.awt.Window
 import java.util.concurrent.ConcurrentHashMap
 import java.util.function.Consumer
 
 // Initialize logger using kotlin-logging
-internal val windowsLogger = KotlinLogging.logger {}
+internal val windowsLogger = Logger.withTag("WindowsThemeDetector")
 
 /**
  * WindowsThemeDetector uses JNA to read the Windows registry value:
@@ -95,7 +95,7 @@ internal object WindowsThemeDetector {
             private var lastValue = isDark()
 
             override fun run() {
-                windowsLogger.debug { "Windows theme monitor thread started" }
+                windowsLogger.d { "Windows theme monitor thread started" }
 
                 // Open the registry key for reading
                 val hKeyRef = WinReg.HKEYByReference()
@@ -107,7 +107,7 @@ internal object WindowsThemeDetector {
                     hKeyRef
                 )
                 if (openErr != WinError.ERROR_SUCCESS) {
-                    windowsLogger.error { "RegOpenKeyEx failed with code $openErr" }
+                    windowsLogger.e { "RegOpenKeyEx failed with code $openErr" }
                     return
                 }
                 val hKey: HKEY = hKeyRef.value
@@ -124,28 +124,28 @@ internal object WindowsThemeDetector {
                             false
                         )
                         if (notifyErr != WinError.ERROR_SUCCESS) {
-                            windowsLogger.error { "RegNotifyChangeKeyValue failed with code $notifyErr" }
+                            windowsLogger.e { "RegNotifyChangeKeyValue failed with code $notifyErr" }
                             return
                         }
 
                         val currentValue = isDark()
                         if (currentValue != lastValue) {
                             lastValue = currentValue
-                            windowsLogger.debug { "Windows theme changed => dark: $currentValue" }
+                            windowsLogger.d { "Windows theme changed => dark: $currentValue" }
                             // Notify all listeners
                             val snapshot = listeners.toList()
                             for (l in snapshot) {
                                 try {
                                     l.accept(currentValue)
                                 } catch (e: RuntimeException) {
-                                    windowsLogger.error(e) { "Error while notifying listener" }
+                                    windowsLogger.e(e) { "Error while notifying listener" }
                                 }
                             }
                         }
                     }
                 } finally {
                     // Close the registry key
-                    windowsLogger.debug { "Detector thread closing registry key" }
+                    windowsLogger.d { "Detector thread closing registry key" }
                     Advapi32Util.registryCloseKey(hKey)
                 }
             }
@@ -170,16 +170,16 @@ internal fun isWindowsInDarkMode(): Boolean {
     val darkModeState = remember { mutableStateOf(WindowsThemeDetector.isDark()) }
 
     DisposableEffect(Unit) {
-        windowsLogger.debug { "Registering Windows dark mode listener in Compose" }
+        windowsLogger.d { "Registering Windows dark mode listener in Compose" }
         val listener = Consumer<Boolean> { newValue ->
-            windowsLogger.debug { "Windows dark mode updated: $newValue" }
+            windowsLogger.d { "Windows dark mode updated: $newValue" }
             darkModeState.value = newValue
         }
 
         WindowsThemeDetector.registerListener(listener)
 
         onDispose {
-            windowsLogger.debug { "Removing Windows dark mode listener in Compose" }
+            windowsLogger.d { "Removing Windows dark mode listener in Compose" }
             WindowsThemeDetector.removeListener(listener)
         }
     }
@@ -218,6 +218,6 @@ fun Window.setWindowsAdaptiveTitleBar(dark: Boolean = isSystemInDarkMode()) {
             )
         }
     } catch (e: Exception) {
-        windowsLogger.debug { "Failed to set dark mode: ${e.message}" }
+        windowsLogger.d { "Failed to set dark mode: ${e.message}" }
     }
 }

@@ -4,14 +4,14 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.DisposableEffect
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
-import io.github.oshai.kotlinlogging.KotlinLogging
+import co.touchlab.kermit.Logger
 import java.io.BufferedReader
 import java.io.InputStreamReader
 import java.util.concurrent.ConcurrentHashMap
 import java.util.function.Consumer
 
 // Initialize logger using kotlin-logging
-private val linuxLogger = KotlinLogging.logger {}
+private val linuxLogger = Logger.withTag("LinuxThemeDetector")
 
 //**
 //* LinuxThemeDetector uses "gsettings monitor org.gnome.desktop.interface" to track
@@ -47,7 +47,7 @@ internal object LinuxThemeDetector {
                 val process = runtime.exec(cmd)
                 BufferedReader(InputStreamReader(process.inputStream)).use { reader ->
                     val line = reader.readLine()
-                    linuxLogger.debug { "Command '$cmd' output: $line" }
+                    linuxLogger.d { "Command '$cmd' output: $line" }
                     if (line != null && isDarkTheme(line)) {
                         return true
                     }
@@ -55,7 +55,7 @@ internal object LinuxThemeDetector {
             }
             false
         } catch (e: Exception) {
-            linuxLogger.error(e) { "Couldn't detect Linux OS theme" }
+            linuxLogger.e(e) { "Couldn't detect Linux OS theme" }
             false
         }
     }
@@ -74,12 +74,12 @@ internal object LinuxThemeDetector {
             private var lastValue: Boolean = isDark()
 
             override fun run() {
-                linuxLogger.debug { "Starting GTK theme monitoring thread" }
+                linuxLogger.d { "Starting GTK theme monitoring thread" }
                 val runtime = Runtime.getRuntime()
                 val process = try {
                     runtime.exec(MONITORING_CMD)
                 } catch (e: Exception) {
-                    linuxLogger.error(e) { "Couldn't start monitoring process" }
+                    linuxLogger.e(e) { "Couldn't start monitoring process" }
                     return
                 }
 
@@ -94,26 +94,26 @@ internal object LinuxThemeDetector {
                             continue
                         }
 
-                        linuxLogger.debug { "Monitoring output: $line" }
+                        linuxLogger.d { "Monitoring output: $line" }
                         val currentIsDark = isDarkThemeFromLine(line)
                             ?: isDark() // fallback to a full check if we can't parse the line
 
                         if (currentIsDark != lastValue) {
                             lastValue = currentIsDark
-                            linuxLogger.debug { "Detected theme change => dark: $currentIsDark" }
+                            linuxLogger.d { "Detected theme change => dark: $currentIsDark" }
                             for (listener in listeners) {
                                 try {
                                     listener.accept(currentIsDark)
                                 } catch (ex: RuntimeException) {
-                                    linuxLogger.error(ex) { "Exception while notifying listener" }
+                                    linuxLogger.e(ex) { "Exception while notifying listener" }
                                 }
                             }
                         }
                     }
-                    linuxLogger.debug { "GTK theme monitoring thread ending" }
+                    linuxLogger.d { "GTK theme monitoring thread ending" }
                     if (process.isAlive) {
                         process.destroy()
-                        linuxLogger.debug { "Monitoring process destroyed" }
+                        linuxLogger.d { "Monitoring process destroyed" }
                     }
                 }
             }
@@ -187,14 +187,14 @@ internal fun isLinuxInDarkMode(): Boolean {
     val darkModeState = remember { mutableStateOf(LinuxThemeDetector.isDark()) }
 
     DisposableEffect(Unit) {
-        linuxLogger.debug { "Registering Linux dark mode listener in Compose" }
+        linuxLogger.d { "Registering Linux dark mode listener in Compose" }
         val listener = Consumer<Boolean> { newValue ->
-            linuxLogger.debug { "Linux dark mode updated: $newValue" }
+            linuxLogger.d { "Linux dark mode updated: $newValue" }
             darkModeState.value = newValue
         }
         LinuxThemeDetector.registerListener(listener)
         onDispose {
-            linuxLogger.debug { "Removing Linux dark mode listener in Compose" }
+            linuxLogger.d { "Removing Linux dark mode listener in Compose" }
             LinuxThemeDetector.removeListener(listener)
         }
     }

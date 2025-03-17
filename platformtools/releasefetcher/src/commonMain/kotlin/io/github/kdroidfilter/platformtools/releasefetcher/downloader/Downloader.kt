@@ -1,8 +1,8 @@
 package io.github.kdroidfilter.platformtools.releasefetcher.downloader
 
+import co.touchlab.kermit.Logger
 import io.github.kdroidfilter.platformtools.getCacheDir
 import io.github.kdroidfilter.platformtools.releasefetcher.config.client
-import io.github.oshai.kotlinlogging.KotlinLogging
 import io.ktor.client.call.*
 import io.ktor.client.plugins.*
 import io.ktor.client.request.*
@@ -12,7 +12,7 @@ import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
 import java.io.File
 
-private val logger = KotlinLogging.logger {}
+private val logger = Logger.withTag("Downloader")
 
 
 /**
@@ -37,14 +37,14 @@ class Downloader {
         onProgress: (percentage: Double, file: File?) -> Unit
     ): Boolean {
         val bufferSize = ReleaseFetcherConfig.downloaderBufferSize
-        logger.debug { "Starting download from URL: $downloadUrl" }
+        logger.d { "Starting download from URL: $downloadUrl" }
 
         val fileName = downloadUrl.substringAfterLast('/').substringBefore('?')
         val cacheDir = getCacheDir()
         val destinationFile = File(cacheDir, fileName)
 
         onProgress(0.0, null)
-        logger.debug { "Download initialized: 0%" }
+        logger.d { "Download initialized: 0%" }
 
         return try {
             val response = client.get(downloadUrl) {
@@ -52,7 +52,7 @@ class Downloader {
                     val progress = if (contentLength != null && contentLength > 0) {
                         (bytesSentTotal * 100.0 / contentLength)
                     } else 0.0
-                    logger.debug { "Progress: $bytesSentTotal / $contentLength bytes" }
+                    logger.d { "Progress: $bytesSentTotal / $contentLength bytes" }
                     onProgress(progress, null)
                 }
             }
@@ -60,7 +60,7 @@ class Downloader {
             if (response.status.isSuccess()) {
                 val channel: ByteReadChannel = response.body()
                 val contentLength = response.contentLength() ?: -1L
-                logger.debug { "Content length: $contentLength bytes" }
+                logger.d { "Content length: $contentLength bytes" }
 
                 withContext(Dispatchers.IO) {
                     destinationFile.outputStream().buffered(bufferSize).use { output ->
@@ -74,21 +74,21 @@ class Downloader {
                 }
 
                 if (destinationFile.exists()) {
-                    logger.debug { "Download completed. Size: ${destinationFile.length()} bytes" }
+                    logger.d { "Download completed. Size: ${destinationFile.length()} bytes" }
                     onProgress(100.0, destinationFile)
                     true
                 } else {
-                    logger.error { "Error: File not created" }
+                    logger.e { "Error: File not created" }
                     onProgress(-1.0, null)  // Keep -1.0 for errors
                     false
                 }
             } else {
-                logger.error { "Download failed: ${response.status}" }
+                logger.e { "Download failed: ${response.status}" }
                 onProgress(-1.0, null)  // Keep -1.0 for errors
                 false
             }
         } catch (e: Exception) {
-            logger.error(e) { "Download error: ${e.message}" }
+            logger.e(e) { "Download error: ${e.message}" }
             onProgress(-1.0, null)  // Keep -1.0 for errors
             false
         }
