@@ -20,6 +20,7 @@ kotlin {
             implementation(compose.foundation)
             implementation(compose.material3)
             implementation(compose.ui)
+            implementation(compose.materialIconsExtended)
             implementation(compose.components.resources)
             implementation(compose.components.uiToolingPreview)
             implementation(libs.navigation.compose)
@@ -28,6 +29,7 @@ kotlin {
             implementation(project(":platformtools:releasefetcher"))
             implementation(project(":platformtools:permissionhandler"))
             implementation(project(":platformtools:darkmodedetector"))
+            implementation(project(":platformtools:rtlwindows"))
         }
 
         androidMain.dependencies {

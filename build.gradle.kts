@@ -10,5 +10,9 @@ plugins {
 subprojects {
     apply(plugin = "org.jetbrains.dokka")
 }
+val ref = System.getenv("GITHUB_REF") ?: ""
 
-extra["libVersion"] = "0.2.9"
+extra["libVersion"] = if (ref.startsWith("refs/tags/")) {
+    val tag = ref.removePrefix("refs/tags/")
+    if (tag.startsWith("v")) tag.substring(1) else tag
+} else "dev"

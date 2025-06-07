@@ -127,7 +127,7 @@ mavenPublishing {
         developers {
             developer {
                 id.set("kdroidfilter")
-                name.set("Elyahou Hadass")
+                name.set("Elie Gambache")
                 email.set("elyahou.hadass@gmail.com")
             }
         }

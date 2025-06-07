@@ -3,18 +3,18 @@ import org.jetbrains.dokka.gradle.DokkaTask
 
 plugins {
     alias(libs.plugins.multiplatform)
-    alias(libs.plugins.android.library)
+    alias(libs.plugins.compose)
+    alias(libs.plugins.compose.compiler)
     alias(libs.plugins.vannitktech.maven.publish)
 }
 val libVersion : String by rootProject.extra
 
-group = "io.github.kdroidfilter.platformtools.appmanager"
+group = "io.github.kdroidfilter.platformtools.rtlwindows"
 version = libVersion
 
 kotlin {
     jvmToolchain(17)
 
-    androidTarget { publishLibraryVariants("release") }
     jvm()
 
 
@@ -32,13 +32,9 @@ kotlin {
         jvmMain.dependencies {
             implementation(libs.jna)
             implementation(libs.jna.platform)
+            implementation(compose.foundation)
         }
 
-        androidMain.dependencies {
-            implementation(libs.androidx.core)
-            implementation(libs.androidx.activity.ktx)
-            implementation(libs.androidcontextprovider)
-        }
 
 
     }
@@ -54,25 +50,17 @@ kotlin {
 
 }
 
-android {
-    namespace = "io.github.kdroidfilter.platformtools.appmanager"
-    compileSdk = 35
-
-    defaultConfig {
-        minSdk = 21
-    }
-}
 
 mavenPublishing {
     coordinates(
         groupId = "io.github.kdroidfilter",
-        artifactId = "platformtools.appmanager",
+        artifactId = "platformtools.rtlwindows",
         version = version.toString()
     )
 
     pom {
-        name.set("PlatformTools AppManager")
-        description.set("Application manager module for PlatformTools, a Kotlin Library to install and update Desktop and Android Applications")
+        name.set("PlatformTools Rtl Windows Fix")
+        description.set("Fix in Windows OS bug that the Title bar not display correctly in rtl mode")
         inceptionYear.set("2025")
         url.set("https://github.com/kdroidFilter/")
 
