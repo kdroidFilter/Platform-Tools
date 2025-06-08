@@ -30,8 +30,8 @@ kotlin {
         }
 
         jvmMain.dependencies {
-            implementation(libs.jna)
-            implementation(libs.jna.platform)
+            implementation(libs.jna.jpms)
+            implementation(libs.jna.platform.jpms)
             implementation(compose.foundation)
         }
 
