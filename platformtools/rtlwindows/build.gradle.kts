@@ -23,6 +23,8 @@ kotlin {
             implementation(project(":platformtools:core"))
             implementation(libs.kotlinx.coroutines.core)
             implementation(libs.kermit)
+            implementation(libs.jna.jpms)
+            implementation(libs.jna.platform.jpms)
         }
 
         commonTest.dependencies {
@@ -30,9 +32,6 @@ kotlin {
         }
 
         jvmMain.dependencies {
-            implementation("net.java.dev.jna:jna:5.17.0")
-            implementation("net.java.dev.jna:jna-platform:5.17.0")
-
             implementation(compose.foundation)
         }
 

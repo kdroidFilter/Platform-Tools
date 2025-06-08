@@ -30,8 +30,8 @@ kotlin {
         }
 
         jvmMain.dependencies {
-            implementation("net.java.dev.jna:jna:5.17.0")
-            implementation("net.java.dev.jna:jna-platform:5.17.0")
+            implementation(libs.jna.jpms)
+            implementation(libs.jna.platform.jpms)
         }
 
         androidMain.dependencies {
