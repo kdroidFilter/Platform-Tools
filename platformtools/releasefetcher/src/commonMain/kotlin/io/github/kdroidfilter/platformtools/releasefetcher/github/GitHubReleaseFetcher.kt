@@ -1,17 +1,15 @@
 package io.github.kdroidfilter.platformtools.releasefetcher.github
 
 import io.github.kdroidfilter.platformtools.OperatingSystem
-import io.github.kdroidfilter.platformtools.getAppVersion
 import io.github.kdroidfilter.platformtools.getOperatingSystem
 import io.github.kdroidfilter.platformtools.releasefetcher.config.client
 import io.github.kdroidfilter.platformtools.releasefetcher.github.model.Release
+import io.github.kdroidfilter.platformtools.releasefetcher.github.getCurrentAppVersion
 import io.github.z4kn4fein.semver.toVersion
 import io.ktor.client.call.*
 import io.ktor.client.request.*
 import io.ktor.client.statement.*
 import io.ktor.http.*
-import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.withContext
 import kotlinx.serialization.json.Json
 
 class GitHubReleaseFetcher(
@@ -24,8 +22,8 @@ class GitHubReleaseFetcher(
     /**
      * Fetches the latest release from the GitHub API using Ktor.
      */
-    suspend fun getLatestRelease(): Release? = withContext(Dispatchers.IO) {
-        try {
+    suspend fun getLatestRelease(): Release? {
+        return try {
             val response: HttpResponse = client.get("https://api.github.com/repos/$owner/$repo/releases/latest")
 
             if (response.status == HttpStatusCode.OK) {
@@ -50,7 +48,7 @@ class GitHubReleaseFetcher(
     ) {
         val latestRelease = getLatestRelease()
         if (latestRelease != null) {
-            val currentVersion = getAppVersion().toVersion(strict = false)
+            val currentVersion = getCurrentAppVersion().toVersion(strict = false)
             val latestVersion = latestRelease.tag_name.toVersion(strict = false)
 
             if (latestVersion > currentVersion) {
