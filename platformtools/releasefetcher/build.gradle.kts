@@ -19,6 +19,7 @@ kotlin {
     androidTarget { publishLibraryVariants("release") }
     jvm()
 
+//    wasmJs { browser() }
 
     sourceSets {
         commonMain.dependencies {
@@ -31,7 +32,6 @@ kotlin {
             implementation(libs.ktor.client.logging)
             implementation(libs.ktor.client.cio)
             api(libs.semver)
-            implementation(libs.slf4j.simple)
             implementation(libs.kermit)
 
         }
@@ -40,11 +40,17 @@ kotlin {
             implementation(kotlin("test"))
         }
 
+        jvmMain.dependencies {
+            implementation(libs.slf4j.simple)
 
-        androidMain {
-            dependencies {
+        }
+
+        androidMain.dependencies {
                 implementation(libs.androidcontextprovider)
-            }
+        }
+
+        wasmJsMain.dependencies {
+            implementation(libs.ktor.client.js)
         }
 
 

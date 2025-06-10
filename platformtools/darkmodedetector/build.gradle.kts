@@ -38,8 +38,8 @@ kotlin {
         }
 
         jvmMain.dependencies {
-            api(libs.jna.jpms)
-            api(libs.jna.platform.jpms)
+            compileOnly(libs.jna.jpms)
+            compileOnly(libs.jna.platform.jpms)
             implementation(libs.jfa)
             implementation(libs.kermit)
         }

@@ -55,6 +55,13 @@ android {
         versionCode = 1
         versionName = "1.0.1"
     }
+
+    packaging {
+        resources {
+            excludes += "/META-INF/AL2.0"
+            excludes += "/META-INF/LGPL2.1"
+        }
+    }
 }
 
 compose.desktop {
