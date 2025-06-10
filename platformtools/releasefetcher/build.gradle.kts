@@ -18,8 +18,7 @@ kotlin {
 
     androidTarget { publishLibraryVariants("release") }
     jvm()
-
-//    wasmJs { browser() }
+    wasmJs { browser() }
 
     sourceSets {
         commonMain.dependencies {
@@ -40,13 +39,22 @@ kotlin {
             implementation(kotlin("test"))
         }
 
-        jvmMain.dependencies {
-            implementation(libs.slf4j.simple)
-
+        val androidJvmMain by creating {
+            dependsOn(commonMain.get())
         }
 
-        androidMain.dependencies {
+        jvmMain {
+            dependsOn(androidJvmMain)
+            dependencies {
+                implementation(libs.slf4j.simple)
+            }
+        }
+
+        androidMain {
+            dependsOn(androidJvmMain)
+            dependencies {
                 implementation(libs.androidcontextprovider)
+            }
         }
 
         wasmJsMain.dependencies {
