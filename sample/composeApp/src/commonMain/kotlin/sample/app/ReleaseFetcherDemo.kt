@@ -10,7 +10,6 @@ import io.github.kdroidfilter.platformtools.releasefetcher.github.GitHubReleaseF
 import io.github.kdroidfilter.platformtools.releasefetcher.github.model.Release
 import io.github.kdroidfilter.platformtools.releasefetcher.downloader.Downloader
 import kotlinx.coroutines.launch
-import java.io.File
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -48,7 +47,7 @@ fun ReleaseFetcherDemo() {
                         val downloadLink = fetcher.getDownloadLinkForPlatform(it)
                         if (downloadLink != null) {
                             downloadStatus = "Downloading..."
-                            downloader.downloadApp(downloadLink) { percentage, file ->
+                            downloader.download(downloadLink) { percentage, file ->
                                 progress = percentage
                                 if (file != null && percentage == 100.0) {
                                     downloadStatus = "Download complete: ${file.absolutePath}"

@@ -35,7 +35,7 @@ actual class Downloader {
      * @return A `Boolean` indicating whether the download was successful.
      *         Returns `true` if the download completes successfully, otherwise `false`.
      */
-    actual suspend fun downloadApp(
+    actual suspend fun download(
         downloadUrl: String,
         onProgress: (percentage: Double, file: PlatformFile?) -> Unit
     ): Boolean {

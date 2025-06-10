@@ -10,5 +10,5 @@ expect class Downloader() {
      * [onProgress] is called with percentage progress and the resulting file when complete.
      * Returns `true` on success.
      */
-    suspend fun downloadApp(downloadUrl: String, onProgress: (percentage: Double, file: PlatformFile?) -> Unit): Boolean
+    suspend fun download(downloadUrl: String, onProgress: (percentage: Double, file: PlatformFile?) -> Unit): Boolean
 }

@@ -7,7 +7,7 @@ import io.ktor.client.statement.*
 import io.ktor.http.*
 
 actual class Downloader {
-    actual suspend fun downloadApp(
+    actual suspend fun download(
         downloadUrl: String,
         onProgress: (percentage: Double, file: PlatformFile?) -> Unit
     ): Boolean {
