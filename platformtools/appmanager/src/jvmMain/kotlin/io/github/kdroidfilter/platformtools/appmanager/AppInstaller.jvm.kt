@@ -11,7 +11,7 @@ import java.io.File
  val logger = Logger.withTag("AppInstaller").apply { setMinSeverity(Severity.Warn) }
 
 
-actual fun getAppInstaller(): AppInstaller = DesktopInstaller()
+fun getAppInstaller(): AppInstaller = DesktopInstaller()
 
 /**
  * The `DesktopInstaller` class is responsible for handling the installation of applications

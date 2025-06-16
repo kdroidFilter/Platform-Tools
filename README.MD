@@ -1,10 +1,24 @@
 # PlatformTools
 
+[![Maven Central](https://img.shields.io/maven-central/v/io.github.kdroidfilter/platformtools.core?label=Maven%20Central)](https://central.sonatype.com/search?q=io.github.kdroidfilter)
+
 **PlatformTools** is a Kotlin Multiplatform library designed to provide platform-specific utilities and tools for managing operating systems, application installation, and release fetching seamlessly across various platforms. The library is modular and divided into three main components: core, appmanager, and releasefetcher.
+
+## 📑 Table of Contents
+- [Core Module](#-core-module)
+- [Dark Mode Detection Module](#-dark-mode-detection-module)
+- [RTL Windows Module](#-rtl-windows-module-jvm-only)
+- [AppManager Module](#-appmanager-module-jvm-only)
+- [Release Fetcher](#-release-fetcher)
+- [License](#-license)
+- [Contributions](#-contributions)
+- [Demo Application](#-demo-application)
 
 ---
 
 ## 🌐 Core Module
+
+[![Maven Central](https://img.shields.io/maven-central/v/io.github.kdroidfilter/platformtools.core?label=Maven%20Central)](https://central.sonatype.com/artifact/io.github.kdroidfilter/platformtools.core)
 
 The **Core** module of the KMP Platform Tools library provides utilities for detecting the underlying operating system and platform, enabling platform-specific logic in Kotlin Multiplatform (KMP) projects. Below, we will detail the functionality and demonstrate usage of the provided features.
 
@@ -89,6 +103,8 @@ implementation("io.github.kdroidfilter:platformtools.core:<version>")
 ```
 
 ## 🌙 Dark Mode Detection Module
+
+[![Maven Central](https://img.shields.io/maven-central/v/io.github.kdroidfilter/platformtools.darkmodedetector?label=Maven%20Central)](https://central.sonatype.com/artifact/io.github.kdroidfilter/platformtools.darkmodedetector)
 
 The **Dark Mode Detection** module of PlatformTools enhances theme management by introducing a reactive function, `isSystemInDarkMode`, that accurately detects system-wide dark mode settings across all supported platforms.
 
@@ -193,9 +209,67 @@ implementation("io.github.kdroidfilter:platformtools.darkmodedetector:<version>"
 With `isSystemInDarkMode`, your Kotlin Multiplatform projects can now dynamically react to dark mode changes on all supported platforms. 🚀
 
 
-## 🔧 AppManager Module (Jvm & Android only)
+## 🔄 RTL Windows Module (JVM only)
+
+[![Maven Central](https://img.shields.io/maven-central/v/io.github.kdroidfilter/platformtools.rtlwindows?label=Maven%20Central)](https://central.sonatype.com/artifact/io.github.kdroidfilter/platformtools.rtlwindows)
+
+The **RTL Windows** module fixes a specific bug in Compose Desktop applications running on Windows in RTL mode, where window buttons (minimize, maximize, close) are incorrectly positioned. This module simply resolves this issue and does nothing if the application is not in RTL mode. It's essential for applications that need to support right-to-left languages like Arabic, Hebrew, or Persian.
+
+### 🔧 Function: `setWindowsRtlLayout`
+
+The `setWindowsRtlLayout` function applies RTL mirroring to a Window based on its component orientation:
+
+```kotlin
+fun Window.setWindowsRtlLayout()
+```
+
+This extension function:
+- Checks if the operating system is Windows (returns early if not)
+- Determines if RTL layout is needed based on the window's component orientation
+- Applies the appropriate Windows-specific style flags to enable RTL layout
+- Updates the window to reflect the new style
+
+### 🔍 How It Works
+
+- Uses JNA (Java Native Access) to interact with the Windows API
+- Checks if the application is in RTL mode; if not, it does nothing
+- When in RTL mode, applies the `WS_EX_LAYOUTRTL` and `WS_EX_RTLREADING` extended window styles to fix the window buttons positioning
+- Only affects Windows OS; has no effect on other operating systems
+
+### 🔧 Example Usage
+
+Here is an example of using `setWindowsRtlLayout` in a Jetpack Compose for Desktop application:
+
+```kotlin
+Window(
+    title = "RTL Example",
+    state = rememberWindowState(width = 800.dp, height = 600.dp),
+    onCloseRequest = ::exitApplication,
+) {
+    // Apply RTL layout if needed
+    window.setWindowsRtlLayout()
+
+    App()
+}
+```
+
+### 📦 Installation
+
+This library is available on Maven Central. To include this module in your project, add the following dependency to your `build.gradle.kts`:
+
+```kotlin
+implementation("io.github.kdroidfilter:platformtools.rtlwindows:<version>")
+```
+
+---
+
+## 🔧 AppManager Module (Jvm only)
+
+[![Maven Central](https://img.shields.io/maven-central/v/io.github.kdroidfilter/platformtools.appmanager?label=Maven%20Central)](https://central.sonatype.com/artifact/io.github.kdroidfilter/platformtools.appmanager)
 
 The **AppManager** module of the KMP Platform Tools library provides utilities to manage application-level information and configurations across multiple platforms. Below, we will detail the functionality and demonstrate usage of the provided features.
+
+> **Note for Android Users**: For Android app installation functionality, we recommend using [Ackpine](https://github.com/solrudev/Ackpine), which provides a comprehensive solution for managing app installations on Android.
 
 ### 🔮 Overview
 
@@ -205,7 +279,6 @@ This module is designed to simplify retrieving and managing app-related metadata
 
 The `AppInstaller` interface provides platform-specific functionality for managing application installation and uninstallation. For each platform, the required file format is as follows:
 
-- **Android**: APK file
 - **Windows**: MSI file
 - **Linux**: DEB file
 - **Mac**: PKG file
@@ -228,7 +301,7 @@ suspend fun installApp(appFile: File, onResult: (success: Boolean, message: Stri
 
 ##### ⬆️ `uninstallApp`
 
-Uninstalls an application using the provided package name or removes the current application. Currently, uninstallation functionality is only supported on Android.
+Uninstalls an application using the provided package name or removes the current application. **Note: This functionality is not yet implemented.**
 
 ```kotlin
 suspend fun uninstallApp(packageName: String, onResult: (success: Boolean, message: String?) -> Unit)
@@ -313,24 +386,10 @@ compose.desktop {
 
 ---
 
-### 🎮 Android-Specific Function: `installAppSilently`
 
-The `AppManager` module provides an additional function for Android devices running in Device Owner mode:
+## 📃 Additional Functions (Jvm)
 
-#### 🔄 `installAppSilently`
-
-Silently installs an application from the specified file without requiring user interaction. This is particularly useful for enterprise environments or Device Owner mode.
-
-```kotlin
-suspend fun installAppSilently(
-    appFile: File,
-    onResult: (success: Boolean, message: String?) -> Unit
-)
-```
-
-## 📃 Additional Functions (Jvm & Android)
-
-The `AppManager` module also provides the following utility functions for JVM and Android platforms:
+The `AppManager` module also provides the following utility functions for JVM platforms:
 
 ### 🔁 `restartApplication`
 
@@ -383,6 +442,8 @@ implementation("io.github.kdroidfilter:platformtools.appmanager:<version>")
 ---
 
 ## 📥 Release Fetcher
+
+[![Maven Central](https://img.shields.io/maven-central/v/io.github.kdroidfilter/platformtools.releasefetcher?label=Maven%20Central)](https://central.sonatype.com/artifact/io.github.kdroidfilter/platformtools.releasefetcher)
 
 ### 🔧 Overview
 
@@ -511,54 +572,19 @@ This library is available on Maven Central. To include it in your project, add t
 implementation("io.github.kdroidfilter:platformtools.releasefetcher:<version>")
 ```
 
-## 🔄 RTL Windows Module (JVM only)
+### ⚠️ Important Note About Dependencies
 
-The **RTL Windows** module fixes a specific bug in Compose Desktop applications running on Windows in RTL mode, where window buttons (minimize, maximize, close) are incorrectly positioned. This module simply resolves this issue and does nothing if the application is not in RTL mode. It's essential for applications that need to support right-to-left languages like Arabic, Hebrew, or Persian.
-
-### 🔧 Function: `setWindowsRtlLayout`
-
-The `setWindowsRtlLayout` function applies RTL mirroring to a Window based on its component orientation:
+The Release Fetcher module uses Ktor as a compileOnly dependency. This means you need to include Ktor dependencies in your project if you want to use this module. Add the following dependencies to your project:
 
 ```kotlin
-fun Window.setWindowsRtlLayout()
-```
-
-This extension function:
-- Checks if the operating system is Windows (returns early if not)
-- Determines if RTL layout is needed based on the window's component orientation
-- Applies the appropriate Windows-specific style flags to enable RTL layout
-- Updates the window to reflect the new style
-
-### 🔍 How It Works
-
-- Uses JNA (Java Native Access) to interact with the Windows API
-- Checks if the application is in RTL mode; if not, it does nothing
-- When in RTL mode, applies the `WS_EX_LAYOUTRTL` and `WS_EX_RTLREADING` extended window styles to fix the window buttons positioning
-- Only affects Windows OS; has no effect on other operating systems
-
-### 🔧 Example Usage
-
-Here is an example of using `setWindowsRtlLayout` in a Jetpack Compose for Desktop application:
-
-```kotlin
-Window(
-    title = "RTL Example",
-    state = rememberWindowState(width = 800.dp, height = 600.dp),
-    onCloseRequest = ::exitApplication,
-) {
-    // Apply RTL layout if needed
-    window.setWindowsRtlLayout()
-
-    App()
-}
-```
-
-### 📦 Installation
-
-This library is available on Maven Central. To include this module in your project, add the following dependency to your `build.gradle.kts`:
-
-```kotlin
-implementation("io.github.kdroidfilter:platformtools.rtlwindows:<version>")
+// Required Ktor dependencies for Release Fetcher
+implementation("io.ktor:ktor-client-core:<ktor-version>")
+implementation("io.ktor:ktor-client-content-negotiation:<ktor-version>")
+implementation("io.ktor:ktor-client-serialization:<ktor-version>")
+implementation("io.ktor:ktor-client-logging:<ktor-version>")
+implementation("io.ktor:ktor-client-cio:<ktor-version>")
+// For WebAssembly JS target
+implementation("io.ktor:ktor-client-js:<ktor-version>")
 ```
 
 ---

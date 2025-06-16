@@ -29,13 +29,6 @@ kotlin {
             implementation(project(":platformtools:releasefetcher"))
             implementation(project(":platformtools:darkmodedetector"))
             implementation(project(":platformtools:rtlwindows"))
-
-            // Required Ktor dependencies for Release Fetcher
-            implementation(libs.ktor.client.core)
-            implementation(libs.ktor.client.content.negotiation)
-            implementation(libs.ktor.client.serialization)
-            implementation(libs.ktor.client.logging)
-            implementation(libs.ktor.client.cio)
         }
 
         androidMain.dependencies {
@@ -66,16 +59,6 @@ android {
         resources {
             excludes += "/META-INF/AL2.0"
             excludes += "/META-INF/LGPL2.1"
-        }
-    }
-
-    buildTypes {
-        release {
-            isMinifyEnabled = false
-            proguardFiles(
-                getDefaultProguardFile("proguard-android-optimize.txt"),
-                "proguard-rules.pro"
-            )
         }
     }
 
