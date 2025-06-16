@@ -157,7 +157,7 @@ For Windows, use the following function to enable an adaptive title bar:
 fun Window.setWindowsAdaptiveTitleBar(dark: Boolean = isSystemInDarkMode())
 ```
 
-Example usage in a Jetpack Compose for Desktop application:
+Example usage in a Compose for Desktop application:
 
 ```kotlin
 Window(
@@ -263,7 +263,7 @@ implementation("io.github.kdroidfilter:platformtools.rtlwindows:<version>")
 
 ---
 
-## 🔧 AppManager Module (Jvm only)
+## 🔧 AppManager Module
 
 [![Maven Central](https://img.shields.io/maven-central/v/io.github.kdroidfilter/platformtools.appmanager?label=Maven%20Central)](https://central.sonatype.com/artifact/io.github.kdroidfilter/platformtools.appmanager)
 
@@ -275,7 +275,7 @@ The **AppManager** module of the KMP Platform Tools library provides utilities t
 
 This module is designed to simplify retrieving and managing app-related metadata, such as package information and other common requirements. It supports platform-specific implementations while offering a unified API for shared code.
 
-### 💡 Interface: `AppInstaller`
+### 💡 Interface: `AppInstaller`  (Jvm only)
 
 The `AppInstaller` interface provides platform-specific functionality for managing application installation and uninstallation. For each platform, the required file format is as follows:
 
@@ -387,7 +387,7 @@ compose.desktop {
 ---
 
 
-## 📃 Additional Functions (Jvm)
+## 📃 Additional Functions (Jvm and Android Only)
 
 The `AppManager` module also provides the following utility functions for JVM platforms:
 
