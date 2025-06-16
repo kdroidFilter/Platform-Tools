@@ -173,7 +173,39 @@ Window(
 
 ### 🍏 macOS Support
 
-On macOS, enabling an adaptive title bar requires adding the following configuration in the `gradle.build.kts` file:
+On macOS, you can enable an adaptive title bar using the `setMacOsAdaptiveTitleBar` function. This function should be called before the application window is created:
+
+#### Parameters of `setMacOsAdaptiveTitleBar`
+
+The `setMacOsAdaptiveTitleBar` function takes a single parameter of type `MacOSTitleBarMode`:
+
+```kotlin
+fun setMacOsAdaptiveTitleBar(mode: MacOSTitleBarMode = MacOSTitleBarMode.AUTO)
+```
+
+The `MacOSTitleBarMode` enum has three possible values:
+
+- **`MacOSTitleBarMode.AUTO`** (default): Uses the system setting for appearance. The title bar will automatically adapt to the system's dark/light mode preference.
+- **`MacOSTitleBarMode.DARK`**: Forces dark mode for the title bar using `NSAppearanceNameDarkAqua`, regardless of the system setting.
+- **`MacOSTitleBarMode.LIGHT`**: Forces light mode for the title bar using `NSAppearanceNameAqua`, regardless of the system setting.
+
+#### Example Usage
+
+```kotlin
+fun main() {
+    // Set macOS adaptive title bar before application starts
+    setMacOsAdaptiveTitleBar() // Default is AUTO which uses system setting
+    // You can also use DARK or LIGHT mode:
+    // setMacOsAdaptiveTitleBar(MacOSTitleBarMode.DARK)
+    // setMacOsAdaptiveTitleBar(MacOSTitleBarMode.LIGHT)
+
+    application {
+        // Your application code
+    }
+}
+```
+
+Alternatively, you can add the following configuration in the `gradle.build.kts` file, but using the function above gives you more control:
 
 ```kotlin
 compose.desktop {
