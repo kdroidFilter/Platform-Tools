@@ -31,7 +31,6 @@ dependencyResolutionManagement {
 include(":platformtools:core")
 include(":platformtools:appmanager")
 include(":platformtools:releasefetcher")
-include(":platformtools:permissionhandler")
 include(":platformtools:darkmodedetector")
 include(":platformtools:rtlwindows")
 include(":sample:composeApp")

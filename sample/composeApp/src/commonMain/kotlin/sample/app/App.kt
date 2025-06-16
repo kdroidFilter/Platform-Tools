@@ -19,7 +19,6 @@ import androidx.navigation.compose.rememberNavController
 import io.github.kdroidfilter.platformtools.darkmodedetector.isSystemInDarkMode
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.launch
-import sample.app.permissionHandler.NotificationPermissionSample
 
 data class Route(
     val title: String,
@@ -27,13 +26,10 @@ data class Route(
     val content : @Composable () -> Unit
 )
 
-val permissionScreensList = listOf(
-    PermissionScreen("Notification", { NotificationPermissionSample() })
-)
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun App(permissionScreensList: List<PermissionScreen> = sample.app.permissionScreensList) {
+fun App() {
     val drawerState = rememberDrawerState(initialValue = DrawerValue.Closed)
     val navController = rememberNavController()
     val scope = rememberCoroutineScope()
@@ -42,7 +38,6 @@ fun App(permissionScreensList: List<PermissionScreen> = sample.app.permissionScr
         Route("Core", "core", { CoreDemo() }),
         Route("App Manager", "appmanager", { AppManagerDemo() }),
         Route("Release Fetcher", "releasefetcher", { ReleaseFetcherDemo() }),
-        Route("Permission Handler", "permissionhandler", {PermissionHandlerDemo(permissionScreensList)})
     )
 
     MaterialTheme(

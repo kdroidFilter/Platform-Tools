@@ -40,14 +40,3 @@ interface AppInstaller {
      */
     suspend fun uninstallApp(onResult: (success: Boolean, message: String?) -> Unit)
 }
-
-
-/**
- * Retrieves the instance of the `AppInstaller` interface for managing app installation tasks.
- *
- * The `AppInstaller` provides methods to check and request permissions for installing packages,
- * as well as functionality to install or uninstall applications.
- *
- * @return An instance of `AppInstaller` to handle app installation-related operations.
- */
-expect fun getAppInstaller(): AppInstaller

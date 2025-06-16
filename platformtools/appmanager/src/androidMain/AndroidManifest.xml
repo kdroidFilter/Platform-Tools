@@ -32,14 +32,6 @@
                     android:resource="@xml/file_paths" />
         </provider>
 
-        <receiver
-                android:name=".InstallResultReceiver"
-                android:enabled="true"
-                android:exported="false">
-            <intent-filter>
-                <action android:name="${applicationId}.APP_INSTALL_STATUS" />
-            </intent-filter>
-        </receiver>
 
     </application>
 </manifest>

@@ -27,7 +27,6 @@ kotlin {
             implementation(project(":platformtools:core"))
             implementation(project(":platformtools:appmanager"))
             implementation(project(":platformtools:releasefetcher"))
-            implementation(project(":platformtools:permissionhandler"))
             implementation(project(":platformtools:darkmodedetector"))
             implementation(project(":platformtools:rtlwindows"))
         }
@@ -48,7 +47,7 @@ android {
     compileSdk = 35
 
     defaultConfig {
-        minSdk = 21
+        minSdk = 24
         targetSdk = 35
 
         applicationId = "sample.app.androidApp"
@@ -62,6 +61,7 @@ android {
             excludes += "/META-INF/LGPL2.1"
         }
     }
+
 }
 
 compose.desktop {

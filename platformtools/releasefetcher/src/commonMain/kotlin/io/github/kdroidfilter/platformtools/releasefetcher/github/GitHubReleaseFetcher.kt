@@ -40,39 +40,5 @@ class GitHubReleaseFetcher(
         }
     }
 
-    /**
-     * Checks for an update. If an update is available, executes [onUpdateNeeded] with the new version and changelog.
-     */
-    suspend fun checkForUpdate(
-        onUpdateNeeded: (latestVersion: String, changelog: String) -> Unit,
-    ) {
-        val latestRelease = getLatestRelease()
-        if (latestRelease != null) {
-            val currentVersion = getCurrentAppVersion().toVersion(strict = false)
-            val latestVersion = latestRelease.tag_name.toVersion(strict = false)
-
-            if (latestVersion > currentVersion) {
-                onUpdateNeeded(latestVersion.toString(), latestRelease.body)
-            }
-        }
-    }
-
-    /**
-     * Returns the download link suitable for the current platform.
-     */
-    fun getDownloadLinkForPlatform(release: Release): String? {
-        val operatingSystemFileTypes = mapOf(
-            OperatingSystem.ANDROID to ".apk",
-            OperatingSystem.WINDOWS to ".msi",
-            OperatingSystem.LINUX to ".deb",
-            OperatingSystem.MACOS to ".dmg"
-        )
-
-        val fileType = operatingSystemFileTypes[getOperatingSystem()] ?: return null
-
-        // Find the corresponding asset
-        val asset = release.assets.firstOrNull { it.name.endsWith(fileType, ignoreCase = true) }
-        return asset?.browser_download_url
-    }
 
 }

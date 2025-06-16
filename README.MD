@@ -1,10 +1,24 @@
 # PlatformTools
 
+[![Maven Central](https://img.shields.io/maven-central/v/io.github.kdroidfilter/platformtools.core?label=Maven%20Central)](https://central.sonatype.com/search?q=io.github.kdroidfilter)
+
 **PlatformTools** is a Kotlin Multiplatform library designed to provide platform-specific utilities and tools for managing operating systems, application installation, and release fetching seamlessly across various platforms. The library is modular and divided into three main components: core, appmanager, and releasefetcher.
+
+## 📑 Table of Contents
+- [Core Module](#-core-module)
+- [Dark Mode Detection Module](#-dark-mode-detection-module)
+- [RTL Windows Module](#-rtl-windows-module-jvm-only)
+- [AppManager Module](#-appmanager-module)
+- [Release Fetcher](#-release-fetcher)
+- [License](#-license)
+- [Contributions](#-contributions)
+- [Demo Application](#-demo-application)
 
 ---
 
 ## 🌐 Core Module
+
+[![Maven Central](https://img.shields.io/maven-central/v/io.github.kdroidfilter/platformtools.core?label=Maven%20Central)](https://central.sonatype.com/artifact/io.github.kdroidfilter/platformtools.core)
 
 The **Core** module of the KMP Platform Tools library provides utilities for detecting the underlying operating system and platform, enabling platform-specific logic in Kotlin Multiplatform (KMP) projects. Below, we will detail the functionality and demonstrate usage of the provided features.
 
@@ -90,6 +104,8 @@ implementation("io.github.kdroidfilter:platformtools.core:<version>")
 
 ## 🌙 Dark Mode Detection Module
 
+[![Maven Central](https://img.shields.io/maven-central/v/io.github.kdroidfilter/platformtools.darkmodedetector?label=Maven%20Central)](https://central.sonatype.com/artifact/io.github.kdroidfilter/platformtools.darkmodedetector)
+
 The **Dark Mode Detection** module of PlatformTools enhances theme management by introducing a reactive function, `isSystemInDarkMode`, that accurately detects system-wide dark mode settings across all supported platforms.
 
 ### ⚙️ Function: `isSystemInDarkMode`
@@ -141,7 +157,7 @@ For Windows, use the following function to enable an adaptive title bar:
 fun Window.setWindowsAdaptiveTitleBar(dark: Boolean = isSystemInDarkMode())
 ```
 
-Example usage in a Jetpack Compose for Desktop application:
+Example usage in a Compose for Desktop application:
 
 ```kotlin
 Window(
@@ -157,7 +173,39 @@ Window(
 
 ### 🍏 macOS Support
 
-On macOS, enabling an adaptive title bar requires adding the following configuration in the `gradle.build.kts` file:
+On macOS, you can enable an adaptive title bar using the `setMacOsAdaptiveTitleBar` function. This function should be called before the application window is created:
+
+#### Parameters of `setMacOsAdaptiveTitleBar`
+
+The `setMacOsAdaptiveTitleBar` function takes a single parameter of type `MacOSTitleBarMode`:
+
+```kotlin
+fun setMacOsAdaptiveTitleBar(mode: MacOSTitleBarMode = MacOSTitleBarMode.AUTO)
+```
+
+The `MacOSTitleBarMode` enum has three possible values:
+
+- **`MacOSTitleBarMode.AUTO`** (default): Uses the system setting for appearance. The title bar will automatically adapt to the system's dark/light mode preference.
+- **`MacOSTitleBarMode.DARK`**: Forces dark mode for the title bar using `NSAppearanceNameDarkAqua`, regardless of the system setting.
+- **`MacOSTitleBarMode.LIGHT`**: Forces light mode for the title bar using `NSAppearanceNameAqua`, regardless of the system setting.
+
+#### Example Usage
+
+```kotlin
+fun main() {
+    // Set macOS adaptive title bar before application starts
+    setMacOsAdaptiveTitleBar() // Default is AUTO which uses system setting
+    // You can also use DARK or LIGHT mode:
+    // setMacOsAdaptiveTitleBar(MacOSTitleBarMode.DARK)
+    // setMacOsAdaptiveTitleBar(MacOSTitleBarMode.LIGHT)
+
+    application {
+        // Your application code
+    }
+}
+```
+
+Alternatively, you can add the following configuration in the `gradle.build.kts` file, but using the function above gives you more control:
 
 ```kotlin
 compose.desktop {
@@ -193,19 +241,76 @@ implementation("io.github.kdroidfilter:platformtools.darkmodedetector:<version>"
 With `isSystemInDarkMode`, your Kotlin Multiplatform projects can now dynamically react to dark mode changes on all supported platforms. 🚀
 
 
-## 🔧 AppManager Module (Jvm & Android only)
+## 🔄 RTL Windows Module (JVM only)
+
+[![Maven Central](https://img.shields.io/maven-central/v/io.github.kdroidfilter/platformtools.rtlwindows?label=Maven%20Central)](https://central.sonatype.com/artifact/io.github.kdroidfilter/platformtools.rtlwindows)
+
+The **RTL Windows** module fixes a specific bug in Compose Desktop applications running on Windows in RTL mode, where window buttons (minimize, maximize, close) are incorrectly positioned. This module simply resolves this issue and does nothing if the application is not in RTL mode. It's essential for applications that need to support right-to-left languages like Arabic, Hebrew, or Persian.
+
+### 🔧 Function: `setWindowsRtlLayout`
+
+The `setWindowsRtlLayout` function applies RTL mirroring to a Window based on its component orientation:
+
+```kotlin
+fun Window.setWindowsRtlLayout()
+```
+
+This extension function:
+- Checks if the operating system is Windows (returns early if not)
+- Determines if RTL layout is needed based on the window's component orientation
+- Applies the appropriate Windows-specific style flags to enable RTL layout
+- Updates the window to reflect the new style
+
+### 🔍 How It Works
+
+- Uses JNA (Java Native Access) to interact with the Windows API
+- Checks if the application is in RTL mode; if not, it does nothing
+- When in RTL mode, applies the `WS_EX_LAYOUTRTL` and `WS_EX_RTLREADING` extended window styles to fix the window buttons positioning
+- Only affects Windows OS; has no effect on other operating systems
+
+### 🔧 Example Usage
+
+Here is an example of using `setWindowsRtlLayout` in a Jetpack Compose for Desktop application:
+
+```kotlin
+Window(
+    title = "RTL Example",
+    state = rememberWindowState(width = 800.dp, height = 600.dp),
+    onCloseRequest = ::exitApplication,
+) {
+    // Apply RTL layout if needed
+    window.setWindowsRtlLayout()
+
+    App()
+}
+```
+
+### 📦 Installation
+
+This library is available on Maven Central. To include this module in your project, add the following dependency to your `build.gradle.kts`:
+
+```kotlin
+implementation("io.github.kdroidfilter:platformtools.rtlwindows:<version>")
+```
+
+---
+
+## 🔧 AppManager Module
+
+[![Maven Central](https://img.shields.io/maven-central/v/io.github.kdroidfilter/platformtools.appmanager?label=Maven%20Central)](https://central.sonatype.com/artifact/io.github.kdroidfilter/platformtools.appmanager)
 
 The **AppManager** module of the KMP Platform Tools library provides utilities to manage application-level information and configurations across multiple platforms. Below, we will detail the functionality and demonstrate usage of the provided features.
+
+> **Note for Android Users**: For Android app installation functionality, we recommend using [Ackpine](https://github.com/solrudev/Ackpine), which provides a comprehensive solution for managing app installations on Android.
 
 ### 🔮 Overview
 
 This module is designed to simplify retrieving and managing app-related metadata, such as package information and other common requirements. It supports platform-specific implementations while offering a unified API for shared code.
 
-### 💡 Interface: `AppInstaller`
+### 💡 Interface: `AppInstaller`  (Jvm only)
 
 The `AppInstaller` interface provides platform-specific functionality for managing application installation and uninstallation. For each platform, the required file format is as follows:
 
-- **Android**: APK file
 - **Windows**: MSI file
 - **Linux**: DEB file
 - **Mac**: PKG file
@@ -228,7 +333,7 @@ suspend fun installApp(appFile: File, onResult: (success: Boolean, message: Stri
 
 ##### ⬆️ `uninstallApp`
 
-Uninstalls an application using the provided package name or removes the current application. Currently, uninstallation functionality is only supported on Android.
+Uninstalls an application using the provided package name or removes the current application. **Note: This functionality is not yet implemented.**
 
 ```kotlin
 suspend fun uninstallApp(packageName: String, onResult: (success: Boolean, message: String?) -> Unit)
@@ -313,24 +418,10 @@ compose.desktop {
 
 ---
 
-### 🎮 Android-Specific Function: `installAppSilently`
 
-The `AppManager` module provides an additional function for Android devices running in Device Owner mode:
+## 📃 Additional Functions (Jvm and Android Only)
 
-#### 🔄 `installAppSilently`
-
-Silently installs an application from the specified file without requiring user interaction. This is particularly useful for enterprise environments or Device Owner mode.
-
-```kotlin
-suspend fun installAppSilently(
-    appFile: File,
-    onResult: (success: Boolean, message: String?) -> Unit
-)
-```
-
-## 📃 Additional Functions (Jvm & Android)
-
-The `AppManager` module also provides the following utility functions for JVM and Android platforms:
+The `AppManager` module also provides the following utility functions for JVM platforms:
 
 ### 🔁 `restartApplication`
 
@@ -384,66 +475,12 @@ implementation("io.github.kdroidfilter:platformtools.appmanager:<version>")
 
 ## 📥 Release Fetcher
 
+[![Maven Central](https://img.shields.io/maven-central/v/io.github.kdroidfilter/platformtools.releasefetcher?label=Maven%20Central)](https://central.sonatype.com/artifact/io.github.kdroidfilter/platformtools.releasefetcher)
+
 ### 🔧 Overview
 
-This module simplifies application downloads for the target platform and streamlines new release management.
+The Release Fetcher module provides utilities for interacting with GitHub releases API to fetch release information for your application. It allows you to retrieve the latest release details from a GitHub repository, which can be used to implement update checking functionality in your application. The module is designed to work across all Kotlin Multiplatform targets and uses Ktor for HTTP requests.
 
-### 📦 `Downloader` Class
-
-The `Downloader` class is a core component of the **Release Fetcher** module, designed to download application files from a given URL while tracking the download progress.
-
-### Main Functionality
-- **File Downloading:**
-    - The primary method, `downloadApp`, accepts a URL and downloads the associated file.
-    - It provides real-time updates on the download progress through a callback `onProgress`, reporting a percentage (from 0.0 to 100.0) and the local file when available.
-    - In case of an error, the progress percentage is set to `-1.0`.
-
-### 🔧 Technical Highlights
-- **Error Handling:** Comprehensive handling of network or file errors with detailed error logging.
-- **Optimized Downloading:** Uses a configurable buffer for efficient file writing.
-- **Coroutine Compatibility:** The method is `suspend`, making it ideal for use with Kotlin Coroutines.
-
----
-
-### 🔧 Usage Example
-
-Here is how you can use the `Downloader` class:
-
-```kotlin
-fun main() = runBlocking {
-    val downloader = Downloader()
-    val url = "https://example.com/app-release.apk"
-
-    val success = downloader.downloadApp(url) { progress, file ->
-        when {
-            progress == -1.0 -> println("Error during download.")
-            progress == 100.0 -> println("Download complete: ${file?.absolutePath}")
-            else -> println("Progress: ${"%.2f".format(progress)}%")
-        }
-    }
-
-    if (success) {
-        println("Download succeeded!")
-    } else {
-        println("Download failed.")
-    }
-}
-```
-
-### ⚖️ Configuration
-
-The `ReleaseFetcherConfig` object allows modification of configuration settings for the downloader:
-
-- **Default Configuration:**
-    - `downloaderBufferSize`: `2 * 1024 * 1024` (2 MB)
-    - `clientTimeOut`: `HttpTimeoutConfig.INFINITE_TIMEOUT_MS`
-
-- **Example:** Modifying the default configuration:
-
-```kotlin
-ReleaseFetcherConfig.downloaderBufferSize = 4 * 1024 * 1024 // Set buffer size to 4 MB
-ReleaseFetcherConfig.clientTimeOut = 60_000 // Set client timeout to 60 seconds
-```
 
 ### 🔧 `GitHubReleaseFetcher` Class
 
@@ -511,249 +548,19 @@ This library is available on Maven Central. To include it in your project, add t
 implementation("io.github.kdroidfilter:platformtools.releasefetcher:<version>")
 ```
 
----
+### ⚠️ Important Note About Dependencies
 
-## ⚖️ Permission Handler Module (Android Only)
-
-The **Permission Handler** module provides a simple way to check and request permissions on Android. It simplifies the process, requiring only that you declare the necessary permissions in the Android manifest file.
-
-### 🔧 Main Features
-
-- **Permission Checking:**
-    - Functions like `hasInstallPermission()` allow you to verify if a specific permission is granted.
-
-- **Permission Requesting:**
-    - Functions like `requestInstallPermission(onGranted, onDenied)` allow you to request permissions, with callbacks for granted or denied states.
-
-- **Manifest Requirements:**
-    - Each function's documentation specifies the permissions required in the manifest file.
-
-### 🔧 Available Permissions and Functions
-
-1. **Install Permission:**
-- **Check:** `hasInstallPermission()`
-- **Request:** `requestInstallPermission(onGranted, onDenied)`
-- **Manifest Permission:**
-  ```xml
-  <uses-permission android:name="android.permission.REQUEST_INSTALL_PACKAGES" />
-  ```
-
-2. **Notification Permission:**
-- **Check:** `hasNotificationPermission()`
-- **Request:** `requestNotificationPermission(onGranted, onDenied)`
-- **Manifest Permission:**
-  ```xml
-  <uses-permission android:name="android.permission.POST_NOTIFICATIONS" />
-  ```
-
-3. **Location Permissions:**
-- **Check:** `hasLocationPermission()`
-- **Request:** `requestLocationPermission(onGranted, onDenied)`
-- **Manifest Permissions:**
-  ```xml
-  <uses-permission android:name="android.permission.ACCESS_COARSE_LOCATION" />
-  <uses-permission android:name="android.permission.ACCESS_FINE_LOCATION" />
-  ```
-
-4. **Background Location Permission:**
-- **Check:** `hasBackgroundLocationPermission()`
-- **Request:** `requestBackgroundLocationPermission(onGranted, onDenied)` (requires location permissions to be granted first)
-- **Manifest Permission:**
-  ```xml
-  <uses-permission android:name="android.permission.ACCESS_BACKGROUND_LOCATION" />
-  ```
-
-5. **Bluetooth Permissions:**
-- **Check:** `hasBluetoothPermission()`
-- **Request:** `requestBluetoothPermission(onGranted, onDenied)`
-- **Manifest Permissions:**
-  ```xml
-  <uses-permission android:name="android.permission.BLUETOOTH" />
-  <uses-permission android:name="android.permission.BLUETOOTH_ADMIN" />
-  <uses-permission android:name="android.permission.BLUETOOTH_CONNECT" android:required="false" />
-  ```
-
-6. **Camera Permission:**
-- **Check:** `hasCameraPermission()`
-- **Request:** `requestCameraPermission(onGranted, onDenied)`
-- **Manifest Requirements:**
-  ```xml
-  <uses-feature android:name="android.hardware.camera" android:required="false" />
-  <uses-permission android:name="android.permission.CAMERA" />
-  ```
-
-7. **Audio Recording Permission:**
-- **Check:** `hasRecordAudioPermission()`
-- **Request:** `requestRecordAudioPermission(onGranted, onDenied)`
-- **Manifest Permission:**
-  ```xml
-  <uses-permission android:name="android.permission.RECORD_AUDIO" />
-  ```
-
-8. **Overlay Permission:**
-- **Check:** `hasOverlayPermission()`
-- **Request:** `requestOverlayPermission(onGranted, onDenied)`
-- **Manifest Permission:**
-  ```xml
-  <uses-permission android:name="android.permission.SYSTEM_ALERT_WINDOW" />
-  ```
-
-9. **Contacts Permissions:**
-- **Read Contacts:**
-    - **Check:** `hasReadContactsPermission()`
-    - **Request:** `requestReadContactsPermission(onGranted, onDenied)`
-    - **Manifest Permission:**
-      ```xml
-      <uses-permission android:name="android.permission.READ_CONTACTS" />
-      ```
-- **Write Contacts:**
-    - **Check:** `hasWriteContactsPermission()`
-    - **Request:** `requestWriteContactsPermission(onGranted, onDenied)`
-    - **Manifest Permission:**
-      ```xml
-      <uses-permission android:name="android.permission.WRITE_CONTACTS" />
-      ```
-
-10. **Read External Storage Permission (Android 13 and Above):**
-- **Check:** `hasReadExternalStoragePermission(mediaTypes: Set<MediaType> = emptySet())`
-- **Request:** `requestReadExternalStoragePermission(mediaTypes: Set<MediaType> = emptySet(), onGranted, onDenied)`
-- **MediaType Enum:**
-  ```kotlin
-  enum class MediaType {
-      IMAGES,
-      VIDEO,
-      AUDIO
-  }
-  ```
-- **Manifest Permission:**
-  ```xml
-  <!-- Example permissions depending on media types -->
-  <uses-permission android:name="android.permission.READ_MEDIA_IMAGES" />
-  <uses-permission android:name="android.permission.READ_MEDIA_VIDEO" />
-  <uses-permission android:name="android.permission.READ_MEDIA_AUDIO" />
-  ```
-
-### 🔧 Usage Example
-
-Here is how to use the module for requesting and handling permissions:
+The Release Fetcher module uses Ktor as a compileOnly dependency. This means you need to include Ktor dependencies in your project if you want to use this module. Add the following dependencies to your project:
 
 ```kotlin
-fun checkAndRequestInstallPermission() {
-    if (hasInstallPermission()) {
-        println("Install permission already granted.")
-    } else {
-        requestInstallPermission(
-            onGranted = {
-                println("Install permission granted.")
-            },
-            onDenied = {
-                println("Install permission denied.")
-            }
-        )
-    }
-}
-
-```
-
-### 🔹 Special Notes for External Storage Permissions
-
-- **Requests read external storage permission for the application.**
-- **Behavior Based on Android Version:**
-    - For Android versions below 13, it requests `READ_EXTERNAL_STORAGE`.
-      ```xml
-      <uses-permission android:name="android.permission.READ_EXTERNAL_STORAGE" />
-      ```
-    - For Android 13 and above, it requests specific media permissions based on the provided media types.
-      ```xml
-      <uses-permission android:name="android.permission.READ_MEDIA_IMAGES" />
-      <uses-permission android:name="android.permission.READ_MEDIA_VIDEO" />
-      <uses-permission android:name="android.permission.READ_MEDIA_AUDIO" />
-      ```
-
-### 🔧 Usage Example
-
-Here is how you can use the module for requesting and handling External storage permissions:
-
-```kotlin
-fun checkAndRequestReadExternalStoragePermission() {
-    val mediaTypes = setOf(MediaType.IMAGES, MediaType.VIDEO)
-    if (hasReadExternalStoragePermission(mediaTypes)) {
-        println("Read external storage permission already granted for selected media types.")
-    } else {
-        requestReadExternalStoragePermission(mediaTypes,
-            onGranted = {
-                println("Read external storage permission granted for selected media types.")
-            },
-            onDenied = {
-                println("Read external storage permission denied.")
-            }
-        )
-    }
-}
-```
-
-### 🔧 Key Points
-
-- Minimal setup: Add the required permissions in the manifest file.
-- Comprehensive: Handles a wide range of Android permissions.
-- Developer-friendly: Simple APIs with clear callbacks for permission handling.
-
-This library is available on Maven Central. To include it in your project, add the following dependency to your `build.gradle.kts` :
-
-```kotlin
-implementation("io.github.kdroidfilter:platformtools.permissionhandler:<version>")
-```
-
----
-
-## 🔄 RTL Windows Module (JVM only)
-
-The **RTL Windows** module fixes a specific bug in Compose Desktop applications running on Windows in RTL mode, where window buttons (minimize, maximize, close) are incorrectly positioned. This module simply resolves this issue and does nothing if the application is not in RTL mode. It's essential for applications that need to support right-to-left languages like Arabic, Hebrew, or Persian.
-
-### 🔧 Function: `setWindowsRtlLayout`
-
-The `setWindowsRtlLayout` function applies RTL mirroring to a Window based on its component orientation:
-
-```kotlin
-fun Window.setWindowsRtlLayout()
-```
-
-This extension function:
-- Checks if the operating system is Windows (returns early if not)
-- Determines if RTL layout is needed based on the window's component orientation
-- Applies the appropriate Windows-specific style flags to enable RTL layout
-- Updates the window to reflect the new style
-
-### 🔍 How It Works
-
-- Uses JNA (Java Native Access) to interact with the Windows API
-- Checks if the application is in RTL mode; if not, it does nothing
-- When in RTL mode, applies the `WS_EX_LAYOUTRTL` and `WS_EX_RTLREADING` extended window styles to fix the window buttons positioning
-- Only affects Windows OS; has no effect on other operating systems
-
-### 🔧 Example Usage
-
-Here is an example of using `setWindowsRtlLayout` in a Jetpack Compose for Desktop application:
-
-```kotlin
-Window(
-    title = "RTL Example",
-    state = rememberWindowState(width = 800.dp, height = 600.dp),
-    onCloseRequest = ::exitApplication,
-) {
-    // Apply RTL layout if needed
-    window.setWindowsRtlLayout()
-
-    App()
-}
-```
-
-### 📦 Installation
-
-This library is available on Maven Central. To include this module in your project, add the following dependency to your `build.gradle.kts`:
-
-```kotlin
-implementation("io.github.kdroidfilter:platformtools.rtlwindows:<version>")
+// Required Ktor dependencies for Release Fetcher
+implementation("io.ktor:ktor-client-core:<ktor-version>")
+implementation("io.ktor:ktor-client-content-negotiation:<ktor-version>")
+implementation("io.ktor:ktor-client-serialization:<ktor-version>")
+implementation("io.ktor:ktor-client-logging:<ktor-version>")
+implementation("io.ktor:ktor-client-cio:<ktor-version>")
+// For WebAssembly JS target
+implementation("io.ktor:ktor-client-js:<ktor-version>")
 ```
 
 ---
