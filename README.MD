@@ -447,64 +447,8 @@ implementation("io.github.kdroidfilter:platformtools.appmanager:<version>")
 
 ### 🔧 Overview
 
-This module simplifies application downloads for the target platform and streamlines new release management.
+The Release Fetcher module provides utilities for interacting with GitHub releases API to fetch release information for your application. It allows you to retrieve the latest release details from a GitHub repository, which can be used to implement update checking functionality in your application. The module is designed to work across all Kotlin Multiplatform targets and uses Ktor for HTTP requests.
 
-### 📦 `Downloader` Class
-
-The `Downloader` class is a core component of the **Release Fetcher** module, designed to download application files from a given URL while tracking the download progress.
-
-### Main Functionality
-- **File Downloading:**
-    - The primary method, `downloadApp`, accepts a URL and downloads the associated file.
-    - It provides real-time updates on the download progress through a callback `onProgress`, reporting a percentage (from 0.0 to 100.0) and the local file when available.
-    - In case of an error, the progress percentage is set to `-1.0`.
-
-### 🔧 Technical Highlights
-- **Error Handling:** Comprehensive handling of network or file errors with detailed error logging.
-- **Optimized Downloading:** Uses a configurable buffer for efficient file writing.
-- **Coroutine Compatibility:** The method is `suspend`, making it ideal for use with Kotlin Coroutines.
-
----
-
-### 🔧 Usage Example
-
-Here is how you can use the `Downloader` class:
-
-```kotlin
-fun main() = runBlocking {
-    val downloader = Downloader()
-    val url = "https://example.com/app-release.apk"
-
-    val success = downloader.downloadApp(url) { progress, file ->
-        when {
-            progress == -1.0 -> println("Error during download.")
-            progress == 100.0 -> println("Download complete: ${file?.absolutePath}")
-            else -> println("Progress: ${"%.2f".format(progress)}%")
-        }
-    }
-
-    if (success) {
-        println("Download succeeded!")
-    } else {
-        println("Download failed.")
-    }
-}
-```
-
-### ⚖️ Configuration
-
-The `ReleaseFetcherConfig` object allows modification of configuration settings for the downloader:
-
-- **Default Configuration:**
-    - `downloaderBufferSize`: `2 * 1024 * 1024` (2 MB)
-    - `clientTimeOut`: `HttpTimeoutConfig.INFINITE_TIMEOUT_MS`
-
-- **Example:** Modifying the default configuration:
-
-```kotlin
-ReleaseFetcherConfig.downloaderBufferSize = 4 * 1024 * 1024 // Set buffer size to 4 MB
-ReleaseFetcherConfig.clientTimeOut = 60_000 // Set client timeout to 60 seconds
-```
 
 ### 🔧 `GitHubReleaseFetcher` Class
 
