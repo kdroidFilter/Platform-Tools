@@ -25,11 +25,11 @@ kotlin {
             implementation(project(":platformtools:core"))
             implementation(libs.kotlinx.serialization.json)
             implementation(libs.kotlinx.coroutines.core)
-            implementation(libs.ktor.client.core)
-            implementation(libs.ktor.client.content.negotiation)
-            implementation(libs.ktor.client.serialization)
-            implementation(libs.ktor.client.logging)
-            implementation(libs.ktor.client.cio)
+            compileOnly(libs.ktor.client.core)
+            compileOnly(libs.ktor.client.content.negotiation)
+            compileOnly(libs.ktor.client.serialization)
+            compileOnly(libs.ktor.client.logging)
+            compileOnly(libs.ktor.client.cio)
             api(libs.semver)
             implementation(libs.kermit)
 
@@ -58,7 +58,7 @@ kotlin {
         }
 
         wasmJsMain.dependencies {
-            implementation(libs.ktor.client.js)
+            compileOnly(libs.ktor.client.js)
         }
 
 
