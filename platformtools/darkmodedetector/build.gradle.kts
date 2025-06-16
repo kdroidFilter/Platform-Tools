@@ -38,9 +38,14 @@ kotlin {
         }
 
         jvmMain.dependencies {
-            compileOnly(libs.jna.jpms)
-            compileOnly(libs.jna.platform.jpms)
-            implementation(libs.jfa)
+            implementation(libs.jna.jpms)
+            implementation(libs.jna.platform.jpms)
+            implementation("de.jangassen:jfa:1.2.0") {
+                exclude(group = "net.java.dev.jna", module = "jna")
+                exclude(group = "net.java.dev.jna", module = "jna-platform")
+                exclude(group = "net.java.dev.jna", module = "jna-jpms")
+                exclude(group = "net.java.dev.jna", module = "jna-platform-jpms")
+            }
             implementation(libs.kermit)
         }
 
