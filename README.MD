@@ -8,7 +8,7 @@
 - [Core Module](#-core-module)
 - [Dark Mode Detection Module](#-dark-mode-detection-module)
 - [RTL Windows Module](#-rtl-windows-module-jvm-only)
-- [AppManager Module](#-appmanager-module-jvm-only)
+- [AppManager Module](#-appmanager-module)
 - [Release Fetcher](#-release-fetcher)
 - [License](#-license)
 - [Contributions](#-contributions)
