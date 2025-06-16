@@ -27,7 +27,6 @@ kotlin {
             implementation(project(":platformtools:core"))
             implementation(project(":platformtools:appmanager"))
             implementation(project(":platformtools:releasefetcher"))
-            implementation(project(":platformtools:permissionhandler"))
             implementation(project(":platformtools:darkmodedetector"))
             implementation(project(":platformtools:rtlwindows"))
         }
