@@ -17,7 +17,10 @@ class GitHubReleaseFetcher(
     private val repo: String,
 ) {
 
-    private val json = Json { ignoreUnknownKeys = true }
+    private val json = Json { 
+        ignoreUnknownKeys = true
+        coerceInputValues = true
+    }
 
     /**
      * Fetches the latest release from the GitHub API using Ktor.
@@ -40,5 +43,30 @@ class GitHubReleaseFetcher(
         }
     }
 
+    /**
+     * Fetches a list of releases from the GitHub API using Ktor.
+     * 
+     * @param count The number of releases to fetch. Default is 10.
+     * @return A list of Release objects or null if the request fails.
+     */
+    suspend fun getReleases(count: Int = 10): List<Release>? {
+        return try {
+            val response: HttpResponse = client.get("https://api.github.com/repos/$owner/$repo/releases") {
+                parameter("per_page", count)
+            }
+
+            if (response.status == HttpStatusCode.OK) {
+                val responseBody: String = response.body()
+                json.decodeFromString<List<Release>>(responseBody)
+            } else {
+                // Handle different response codes as needed
+                null
+            }
+        } catch (e: Exception) {
+            // Log or handle the error as necessary
+            e.printStackTrace()
+            null
+        }
+    }
 
 }

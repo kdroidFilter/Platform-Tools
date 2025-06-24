@@ -29,6 +29,11 @@ kotlin {
             implementation(project(":platformtools:releasefetcher"))
             implementation(project(":platformtools:darkmodedetector"))
             implementation(project(":platformtools:rtlwindows"))
+            implementation(libs.ktor.client.core)
+            implementation(libs.ktor.client.content.negotiation)
+            implementation(libs.ktor.client.serialization)
+            implementation(libs.ktor.client.logging)
+            implementation(libs.ktor.client.cio)
         }
 
         androidMain.dependencies {
