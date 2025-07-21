@@ -31,7 +31,7 @@ jna-platform-jpms = { module = "net.java.dev.jna:jna-platform-jpms", version.ref
 kermit = { module = "co.touchlab:kermit", version.ref = "kermit" }
 kotlinx-browser-wasm-js = { module = "org.jetbrains.kotlinx:kotlinx-browser-wasm-js", version.ref = "kotlinxBrowserWasmJs" }
 kotlinx-coroutines-core = { module = "org.jetbrains.kotlinx:kotlinx-coroutines-core", version.ref = "kotlinxCoroutinesCore" }
-kotlinx-serialization-json = { module = "org.jetbrains.kotlinx:kotlinx-serialization-json", version = "1.8.1" }
+kotlinx-serialization-json = { module = "org.jetbrains.kotlinx:kotlinx-serialization-json", version = "1.9.0" }
 ktor-client-cio = { module = "io.ktor:ktor-client-cio", version.ref = "ktor" }
 ktor-client-js = { module = "io.ktor:ktor-client-js", version.ref = "ktor"}
 ktor-client-core = { module = "io.ktor:ktor-client-core", version.ref = "ktor" }
