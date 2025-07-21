@@ -1,4 +1,3 @@
-import com.vanniktech.maven.publish.SonatypeHost
 
 plugins {
     alias(libs.plugins.multiplatform)
@@ -139,7 +138,7 @@ mavenPublishing {
         }
     }
 
-    publishToMavenCentral(SonatypeHost.CENTRAL_PORTAL)
+    publishToMavenCentral()
 
     signAllPublications()
 }
