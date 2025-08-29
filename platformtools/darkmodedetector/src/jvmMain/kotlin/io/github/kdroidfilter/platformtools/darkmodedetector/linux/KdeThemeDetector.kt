@@ -1,17 +1,262 @@
 package io.github.kdroidfilter.platformtools.darkmodedetector.linux
 
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.remember
 import androidx.compose.runtime.DisposableEffect
 import androidx.compose.runtime.mutableStateOf
-import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
+import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.collectAsState
 import io.github.kdroidfilter.platformtools.LinuxDesktopEnvironment
 import io.github.kdroidfilter.platformtools.detectLinuxDesktopEnvironment
+import kotlinx.coroutines.CancellationException
+import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.Job
+import kotlinx.coroutines.delay
+import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.flow.StateFlow
+import kotlinx.coroutines.flow.asStateFlow
+import kotlinx.coroutines.launch
+import kotlinx.coroutines.sync.Mutex
+import kotlinx.coroutines.sync.withLock
 import java.io.BufferedReader
 import java.io.File
 import java.io.InputStreamReader
-import kotlin.math.sqrt
+import java.util.concurrent.TimeUnit
+import java.util.concurrent.atomic.AtomicBoolean
 
-/* ----------------------------- Helpers (KDE) ------------------------------ */
+/* ============================================================================
+ * Public data & API
+ * ========================================================================== */
+
+data class KdeThemeState(
+    val windowTheme: Boolean?,   // Global/window color scheme dark?
+    val panelTheme:  Boolean?    // Plasma panel (Style) dark?
+) {
+    val isMixed: Boolean get() = windowTheme != null && panelTheme != null && windowTheme != panelTheme
+    val isFullDark: Boolean get() = windowTheme == true && panelTheme == true
+    val isFullLight: Boolean get() = windowTheme == false && panelTheme == false
+}
+
+/** Singleton detector: one monitor, shared state for the whole app. */
+object KdeThemeDetector {
+    private val scope = CoroutineScope(Dispatchers.IO)
+    private val started = AtomicBoolean(false)
+    private val state = MutableStateFlow<KdeThemeState?>(null)
+    private val startStopMutex = Mutex()
+
+    // Process-based monitor
+    @Volatile private var dbusProcess: Process? = null
+    @Volatile private var dbusReaderJob: Job? = null
+    @Volatile private var pollerJob: Job? = null
+
+    fun themeState(): StateFlow<KdeThemeState?> = state.asStateFlow()
+
+    suspend fun startIfNeeded() {
+        startStopMutex.withLock {
+            if (started.get()) return
+            started.set(true)
+
+            // Compute initial snapshot
+            state.value = computeSnapshot()
+
+            // Try dbus-monitor first; if not found, fall back to polling
+            if (isCommandAvailable("dbus-monitor")) {
+                startDbusMonitor()
+            } else {
+                startPollingFallback()
+            }
+        }
+    }
+
+    suspend fun stop() {
+        startStopMutex.withLock {
+            started.set(false)
+            dbusReaderJob?.cancel()
+            dbusReaderJob = null
+            dbusProcess?.let { p ->
+                try { p.destroy() } catch (_: Throwable) {}
+                dbusProcess = null
+            }
+            pollerJob?.cancel()
+            pollerJob = null
+        }
+    }
+
+    private fun startDbusMonitor() {
+        // Ensure polling is not running
+        pollerJob?.cancel()
+        pollerJob = null
+
+        // Launch (and relaunch) dbus-monitor loop
+        dbusReaderJob = scope.launch {
+            while (started.get()) {
+                dbusProcess = try {
+                    ProcessBuilder(
+                        "dbus-monitor",
+                        "--session",
+                        "type='signal',interface='org.kde.KGlobalSettings',member='notifyChange'",
+                        "type='signal',interface='org.kde.PlasmaShell',member='themeChanged'",
+                        "type='signal',interface='org.kde.kdeglobals',member='configChanged'"
+                    )
+                        .redirectErrorStream(true)
+                        .start()
+                } catch (_: Exception) {
+                    // Fallback to polling if dbus-monitor fails to spawn
+                    startPollingFallback()
+                    return@launch
+                }
+
+                try {
+                    BufferedReader(InputStreamReader(dbusProcess!!.inputStream)).use { reader ->
+                        var debounceJob: Job? = null
+
+                        // Emit current state once on start (already computed but emit again in case consumers started late)
+                        state.emitSafely(computeSnapshot())
+
+                        while (started.get()) {
+                            val line = reader.readLine() ?: break
+                            if (line.contains("notifyChange") ||
+                                line.contains("themeChanged")  ||
+                                line.contains("configChanged")
+                            ) {
+                                // Debounce rapid bursts from DBus
+                                debounceJob?.cancel()
+                                debounceJob = launch {
+                                    delay(200)
+                                    state.emitIfChanged(computeSnapshot())
+                                }
+                            }
+                        }
+
+                        debounceJob?.join()
+                    }
+                } catch (_: CancellationException) {
+                    // Normal shutdown
+                } catch (_: Exception) {
+                    // Reader crashed; will restart below
+                } finally {
+                    try { dbusProcess?.destroy() } catch (_: Throwable) {}
+                    dbusProcess = null
+                }
+
+                // If we’re still supposed to run, restart dbus-monitor after a short pause
+                if (started.get()) delay(500)
+            }
+        }
+    }
+
+    private fun startPollingFallback() {
+        // Ensure dbus is not running
+        dbusReaderJob?.cancel()
+        dbusReaderJob = null
+        dbusProcess?.let { try { it.destroy() } catch (_: Throwable) {} }
+        dbusProcess = null
+
+        // Poll a small set of files and kreadconfig outputs
+        pollerJob = scope.launch {
+            var last: KdeThemeState? = state.value
+            while (started.get()) {
+                val snap = computeSnapshot()
+                if (snap != last) {
+                    last = snap
+                    state.emitSafely(snap)
+                }
+                delay(750) // small, low-cost poll
+            }
+        }
+    }
+
+    /* ----------------------------- Snapshot logic ----------------------------- */
+
+    private fun computeSnapshot(): KdeThemeState =
+        KdeThemeState(
+            windowTheme = detectKdeDarkTheme(),
+            panelTheme  = detectKdePanelDark()
+        )
+
+    /* ------------------------------ Helpers ---------------------------------- */
+
+    private fun isCommandAvailable(cmd: String): Boolean {
+        // Try `which` without spawning a shell
+        return try {
+            val p = ProcessBuilder("which", cmd)
+                .redirectErrorStream(true)
+                .start()
+            p.waitFor(300, TimeUnit.MILLISECONDS) && p.exitValue() == 0
+        } catch (_: Exception) { false }
+    }
+
+    private suspend fun MutableStateFlow<KdeThemeState?>.emitSafely(v: KdeThemeState?) {
+        try {
+            emit(v)
+        } catch (e: CancellationException) {
+            throw e
+        } catch (t: Throwable) {
+            // Swallow any other exception
+        }
+    }
+
+
+    private suspend fun MutableStateFlow<KdeThemeState?>.emitIfChanged(v: KdeThemeState?) {
+        if (value != v) emitSafely(v)
+    }
+}
+
+/* ============================================================================
+ * Compose-facing APIs
+ * ========================================================================== */
+
+/**
+ * Starts the singleton monitor (idempotent) and returns the latest KDE theme state
+ * as a Compose state value. Updates are debounced and robust.
+ */
+@Composable
+fun rememberKdeDarkModeState(): KdeThemeState? {
+    // Keep a small local state that mirrors the flow
+    var current by remember { mutableStateOf<KdeThemeState?>(null) }
+
+    // Start monitor once when needed; stop when this composable leaves the tree
+    DisposableEffect(Unit) {
+        var disposed = false
+        val job = Job()
+        val scope = CoroutineScope(Dispatchers.IO + job)
+        scope.launch {
+            KdeThemeDetector.startIfNeeded()
+        }
+        onDispose {
+            disposed = true
+            job.cancel()
+            // Do NOT stop the singleton monitor here; other composables/app parts may still use it.
+        }
+    }
+
+    // Collect the shared flow as state
+    val flow = remember { KdeThemeDetector.themeState() }
+    val collected by flow.collectAsState(initial = null)
+    LaunchedEffect(collected) { current = collected }
+
+    return current
+}
+
+/** Convenience boolean: prefer window theme, then panel, else false. */
+@Composable
+fun isKdeInDarkMode(): Boolean {
+    val st = rememberKdeDarkModeState()
+    return st?.windowTheme ?: st?.panelTheme ?: false
+}
+
+/* ============================================================================
+ * KDE-specific detection (pure functions below)
+ * ========================================================================== */
+
+private fun isTwilightLaf(lookAndFeel: String?): Boolean {
+    if (lookAndFeel.isNullOrBlank()) return false
+    val s = lookAndFeel.lowercase()
+    return s.contains("breezetwilight") || (s.contains("breeze") && s.contains("twilight"))
+}
 
 private fun runKReadConfig(file: String, group: String, key: String): String? {
     val cmds = listOf(
@@ -20,31 +265,29 @@ private fun runKReadConfig(file: String, group: String, key: String): String? {
     )
     for (cmd in cmds) {
         try {
-            val p = Runtime.getRuntime().exec(cmd)
+            val p = ProcessBuilder(*cmd).redirectErrorStream(true).start()
             val out = BufferedReader(InputStreamReader(p.inputStream)).use { it.readLine()?.trim() }
-            p.waitFor()
+            p.waitFor(300, TimeUnit.MILLISECONDS)
             if (!out.isNullOrBlank()) return out
-        } catch (_: Exception) {}
+        } catch (_: Exception) { }
     }
     return null
 }
 
-private fun effectivePlasmaThemeName(rawTheme: String?, lookAndFeel: String?): String? {
-    if (!lookAndFeel.isNullOrBlank() && lookAndFeel.contains("breeze", true) && lookAndFeel.contains("twilight", true)) {
-        return "breezedark"
-    }
+private fun normalizePlasmaThemeName(rawTheme: String?, lookAndFeel: String?): String? {
+    if (isTwilightLaf(lookAndFeel)) return "breeze-dark"
     if (rawTheme.isNullOrBlank() || rawTheme.equals("default", true)) return "breeze"
     return when (rawTheme.lowercase()) {
-        "org.kde.breezedark.desktop", "breeze-dark", "breezedark" -> "breezedark"
+        "org.kde.breezedark.desktop", "breeze-dark", "breezedark" -> "breeze-dark"
         "org.kde.breeze.desktop", "breeze" -> "breeze"
         else -> rawTheme
     }
 }
 
-private fun findExistingFile(vararg candidates: String): File? =
-    candidates.asSequence().map(::File).firstOrNull { it.isFile && it.canRead() }
+private fun firstReadable(vararg paths: String): File? =
+    paths.asSequence().map(::File).firstOrNull { it.isFile && it.canRead() }
 
-private fun plasmaThemeColorsFile(themeName: String): File? {
+private fun plasmaThemeDirCandidates(themeName: String): List<File> {
     val home = System.getenv("HOME") ?: System.getProperty("user.home")
     val variants = listOf(
         themeName,
@@ -55,33 +298,14 @@ private fun plasmaThemeColorsFile(themeName: String): File? {
         themeName.lowercase().replace(' ', '-')
     ).distinct()
 
-    val candidates = buildList {
-        for (v in variants) {
-            add("$home/.local/share/plasma/desktoptheme/$v/colors")
-            add("/usr/share/plasma/desktoptheme/$v/colors")
-        }
-    }
-    return findExistingFile(*candidates.toTypedArray())
-}
+    val roots = listOf(
+        "$home/.local/share/plasma/desktoptheme",
+        "/usr/share/plasma/desktoptheme"
+    )
 
-private fun kdeColorSchemeFile(schemeName: String): File? {
-    val home = System.getenv("HOME") ?: System.getProperty("user.home")
-    val variants = listOf(
-        schemeName,
-        schemeName.replace(' ', '_'),
-        schemeName.replace(' ', '-'),
-        schemeName.lowercase(),
-        schemeName.lowercase().replace(' ', '_'),
-        schemeName.lowercase().replace(' ', '-')
-    ).distinct()
-
-    val candidates = buildList {
-        for (v in variants) {
-            add("$home/.local/share/color-schemes/$v.colors")
-            add("/usr/share/color-schemes/$v.colors")
-        }
-    }
-    return findExistingFile(*candidates.toTypedArray())
+    val dirs = mutableListOf<File>()
+    for (v in variants) for (r in roots) dirs += File("$r/$v")
+    return dirs
 }
 
 private fun parseIni(file: File): Map<String, Map<String, String>> {
@@ -108,28 +332,25 @@ private fun parseIni(file: File): Map<String, Map<String, String>> {
 private fun parseKdeRgb(value: String): Triple<Int, Int, Int>? {
     val nums = value.split(',', ' ')
         .mapNotNull { it.trim().toIntOrNull() }
-        .filterIndexed { idx, _ -> idx < 3 }
-    if (nums.size == 3) return Triple(nums[0].coerceIn(0, 255), nums[1].coerceIn(0, 255), nums[2].coerceIn(0, 255))
-    return null
+        .take(3)
+    return if (nums.size == 3)
+        Triple(nums[0].coerceIn(0,255), nums[1].coerceIn(0,255), nums[2].coerceIn(0,255))
+    else null
 }
 
 private fun isRgbDark(r: Int, g: Int, b: Int): Boolean {
-    val p = kotlin.math.sqrt(0.299 * r * r + 0.587 * g * g + 0.114 * b * b)
-    return p < 140.0
+    val lum = 0.299 * r + 0.587 * g + 0.114 * b
+    return lum < 140.0
 }
 
 private fun deriveDarkFromColorsMap(colors: Map<String, Map<String, String>>): Boolean? {
-    val sectionsInPriority = listOf(
-        "Colors:Panel",
-        "Colors:Window",
-        "Colors:View",
-        "Colors:Button"
-    )
+    val sectionsInPriority = listOf("Colors:Panel", "Colors:Window", "Colors:View", "Colors:Button")
     for (sec in sectionsInPriority) {
         val bg = colors[sec]?.get("BackgroundNormal") ?: continue
         val rgb = parseKdeRgb(bg) ?: continue
         return isRgbDark(rgb.first, rgb.second, rgb.third)
     }
+    // Generic fallback
     colors.values.forEach { section ->
         section["BackgroundNormal"]?.let { v ->
             parseKdeRgb(v)?.let { (r, g, b) -> return isRgbDark(r, g, b) }
@@ -138,12 +359,46 @@ private fun deriveDarkFromColorsMap(colors: Map<String, Map<String, String>>): B
     return null
 }
 
-/* ------------------------------- KDE logic -------------------------------- */
+private fun resolvePlasmaColorsFile(themeName: String, visited: MutableSet<String> = mutableSetOf()): File? {
+    val key = themeName.lowercase()
+    if (!visited.add(key)) return null // prevent cycles
 
-internal fun detectKdeDarkTheme(): Boolean? {
+    val dir = plasmaThemeDirCandidates(themeName).firstOrNull { it.isDirectory && it.canRead() }
+    val directColors = dir?.let { firstReadable("${it.path}/colors") }
+    if (directColors != null) return directColors
+
+    val meta = dir?.let { firstReadable("${it.path}/metadata.desktop") }
+    if (meta != null) {
+        val ini = parseIni(meta)
+        val inherits = ini.values.firstNotNullOfOrNull { map ->
+            map.entries.firstOrNull { (k, _) -> k.equals("Inherits", true) || k.equals("inherits", true) }?.value
+        }
+        if (!inherits.isNullOrBlank()) {
+            inherits.split(',', ';')
+                .map { it.trim() }
+                .filter { it.isNotEmpty() }
+                .forEach { parent ->
+                    resolvePlasmaColorsFile(parent, visited)?.let { return it }
+                }
+        }
+    }
+    return null
+}
+
+/* ---------- KDE dark detection, with safe fallbacks ---------- */
+
+private fun detectKdeDarkTheme(): Boolean? {
+    if (detectLinuxDesktopEnvironment() != LinuxDesktopEnvironment.KDE) return null
     return try {
         val scheme = runKReadConfig(file = "kdeglobals", group = "General", key = "ColorScheme") ?: return null
-        val schemeFile = kdeColorSchemeFile(scheme) ?: return null
+        val home = System.getenv("HOME") ?: System.getProperty("user.home")
+        val variants = listOf(
+            scheme, scheme.replace(' ', '_'), scheme.replace(' ', '-'),
+            scheme.lowercase(), scheme.lowercase().replace(' ', '_'), scheme.lowercase().replace(' ', '-')
+        ).distinct()
+        val schemeFile = variants
+            .flatMap { v -> listOf("$home/.local/share/color-schemes/$v.colors", "/usr/share/color-schemes/$v.colors") }
+            .map(::File).firstOrNull { it.isFile && it.canRead() } ?: return null
         val colors = parseIni(schemeFile)
         deriveDarkFromColorsMap(colors)
     } catch (_: Exception) {
@@ -156,27 +411,22 @@ internal fun detectKdeDarkTheme(): Boolean? {
     }
 }
 
-fun isKdePanelDark(): Boolean? {
+private fun detectKdePanelDark(): Boolean? {
     if (detectLinuxDesktopEnvironment() != LinuxDesktopEnvironment.KDE) return null
     return try {
         val rawTheme = runKReadConfig("plasmarc", "Theme", "name")
             ?: runKReadConfig("plasmashellrc", "Theme", "name")
         val lookAndFeel = runKReadConfig("kdeglobals", "KDE", "LookAndFeelPackage")
-        val theme = effectivePlasmaThemeName(rawTheme, lookAndFeel) ?: return null
-        val colorsFile: File? = when {
-            plasmaThemeColorsFile(theme) != null -> plasmaThemeColorsFile(theme)
-            theme.equals("breeze", true) -> plasmaThemeColorsFile("breezedark")
-            theme.equals("breezedark", true) -> plasmaThemeColorsFile("breeze")
-            else -> null
-        }
+        val theme = normalizePlasmaThemeName(rawTheme, lookAndFeel) ?: return null
+
+        val colorsFile = resolvePlasmaColorsFile(theme)
         if (colorsFile != null) {
             val colors = parseIni(colorsFile)
             val derived = deriveDarkFromColorsMap(colors)
             if (derived != null) return derived
         }
-        if (!lookAndFeel.isNullOrBlank() && lookAndFeel.contains("breeze", true) && lookAndFeel.contains("twilight", true)) {
-            return true
-        }
+
+        // Last resort: global hints
         val scheme = runKReadConfig("kdeglobals", "General", "ColorScheme")
         when {
             scheme?.contains("dark", true) == true -> true
@@ -188,136 +438,4 @@ fun isKdePanelDark(): Boolean? {
     } catch (_: Exception) {
         null
     }
-}
-
-data class KdeThemeState(
-    val windowTheme: Boolean? = null,
-    val panelTheme: Boolean? = null
-) {
-    val isMixed: Boolean
-        get() = windowTheme != null && panelTheme != null && windowTheme != panelTheme
-    val isFullDark: Boolean
-        get() = windowTheme == true && panelTheme == true
-    val isFullLight: Boolean
-        get() = windowTheme == false && panelTheme == false
-}
-
-@Volatile
-private var lastKdeThemeState: KdeThemeState? = null
-
-@Volatile
-private var kdeMonitorThread: Thread? = null
-
-private fun ensureKdeMonitoring() {
-    if (kdeMonitorThread?.isAlive == true) return
-    kdeMonitorThread = Thread({
-        // initialize
-        lastKdeThemeState = KdeThemeState(
-            windowTheme = detectKdeDarkTheme(),
-            panelTheme = isKdePanelDark()
-        )
-        val process = try {
-            Runtime.getRuntime().exec(
-                arrayOf(
-                    "dbus-monitor",
-                    "--session",
-                    "type='signal',interface='org.kde.KGlobalSettings',member='notifyChange'",
-                    "type='signal',interface='org.kde.PlasmaShell',member='themeChanged'",
-                    "type='signal',interface='org.kde.kdeglobals',member='configChanged'"
-                )
-            )
-        } catch (_: Exception) { null }
-        if (process == null) return@Thread
-        BufferedReader(InputStreamReader(process.inputStream)).use { reader ->
-            while (!Thread.currentThread().isInterrupted) {
-                val line = reader.readLine() ?: break
-                if (
-                    line.contains("notifyChange") ||
-                    line.contains("themeChanged") ||
-                    line.contains("configChanged")
-                ) {
-                    try { Thread.sleep(100) } catch (_: InterruptedException) { break }
-                    val newState = KdeThemeState(
-                        windowTheme = detectKdeDarkTheme(),
-                        panelTheme = isKdePanelDark()
-                    )
-                    lastKdeThemeState = newState
-                }
-            }
-        }
-        if (process.isAlive) {
-            try { process.destroy() } catch (_: Throwable) {}
-        }
-    }, "KDE-Theme-State-Monitor").apply { isDaemon = true; start() }
-}
-
-fun getKdeThemeState(): KdeThemeState? {
-    if (detectLinuxDesktopEnvironment() != LinuxDesktopEnvironment.KDE) return null
-    if (lastKdeThemeState == null) {
-        // compute once
-        lastKdeThemeState = KdeThemeState(
-            windowTheme = detectKdeDarkTheme(),
-            panelTheme = isKdePanelDark()
-        )
-        // try to start background monitoring so subsequent calls are reactive
-        ensureKdeMonitoring()
-    }
-    return lastKdeThemeState
-}
-
-fun monitorKdeThemeChanges(onThemeChange: (KdeThemeState) -> Unit): Process? {
-    if (detectLinuxDesktopEnvironment() != LinuxDesktopEnvironment.KDE) return null
-    return try {
-        val process = Runtime.getRuntime().exec(
-            arrayOf(
-                "dbus-monitor",
-                "--session",
-                "type='signal',interface='org.kde.KGlobalSettings',member='notifyChange'",
-                "type='signal',interface='org.kde.PlasmaShell',member='themeChanged'",
-                "type='signal',interface='org.kde.kdeglobals',member='configChanged'"
-            )
-        )
-        Thread({
-            BufferedReader(InputStreamReader(process.inputStream)).use { reader ->
-                var lastState = getKdeThemeState()
-                reader.forEachLine { line ->
-                    if (
-                        line.contains("notifyChange") ||
-                        line.contains("themeChanged") ||
-                        line.contains("configChanged")
-                    ) {
-                        Thread.sleep(100)
-                        val newState = getKdeThemeState()
-                        if (newState != null && newState != lastState) {
-                            lastState = newState
-                            onThemeChange(newState)
-                        }
-                    }
-                }
-            }
-        }, "KDE-Theme-DBus-Monitor").apply { isDaemon = true; start() }
-        process
-    } catch (_: Exception) {
-        null
-    }
-}
-
-@Composable
-fun rememberKdeDarkModeState(): KdeThemeState? {
-    val state = remember { mutableStateOf(getKdeThemeState()) }
-    DisposableEffect(Unit) {
-        val process = monitorKdeThemeChanges { newState ->
-            state.value = newState
-        }
-        onDispose {
-            process?.destroy()
-        }
-    }
-    return state.value
-}
-
-@Composable
-internal fun isKdeInDarkMode(): Boolean {
-    val state = rememberKdeDarkModeState()
-    return state?.windowTheme ?: state?.panelTheme ?: false
 }
