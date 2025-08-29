@@ -31,5 +31,8 @@ fun CoreDemo() {
         Text("Platform: $platform", style = MaterialTheme.typography.bodyLarge)
         Text("Cache Directory: ${cacheDir.absolutePath}", style = MaterialTheme.typography.bodyLarge)
         Text("App Version: $appVersion", style = MaterialTheme.typography.bodyLarge)
+
+        // Linux Desktop Environment & Dark Theme (JVM/Linux)
+        LinuxInfoSection()
     }
 }

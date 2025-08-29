@@ -6,11 +6,10 @@ enum class LinuxDesktopEnvironment {
 }
 
 /**
- * Detects the Linux Desktop Environment.
+ * Detect the Linux Desktop Environment.
  *
- * - Returns **null** if the OS is not Linux († avoids unnecessary computation).
- * - Uses common environment variables:
- *   `XDG_CURRENT_DESKTOP`, `DESKTOP_SESSION`.
+ * - Returns **null** if the OS is not Linux (avoids unnecessary work).
+ * - Uses common environment variables: `XDG_CURRENT_DESKTOP`, `DESKTOP_SESSION`.
  */
 fun detectLinuxDesktopEnvironment(): LinuxDesktopEnvironment? {
     if (getOperatingSystem() != OperatingSystem.LINUX) return null
@@ -21,11 +20,11 @@ fun detectLinuxDesktopEnvironment(): LinuxDesktopEnvironment? {
     }.joinToString("|").lowercase()
 
     return when {
-        "gnome"    in combinedEnv               -> LinuxDesktopEnvironment.GNOME
+        "gnome" in combinedEnv -> LinuxDesktopEnvironment.GNOME
         "kde" in combinedEnv || "plasma" in combinedEnv -> LinuxDesktopEnvironment.KDE
-        "xfce"     in combinedEnv               -> LinuxDesktopEnvironment.XFCE
-        "cinnamon" in combinedEnv               -> LinuxDesktopEnvironment.CINNAMON
-        "mate"     in combinedEnv               -> LinuxDesktopEnvironment.MATE
-        else                                    -> LinuxDesktopEnvironment.UNKNOWN
+        "xfce" in combinedEnv -> LinuxDesktopEnvironment.XFCE
+        "cinnamon" in combinedEnv -> LinuxDesktopEnvironment.CINNAMON
+        "mate" in combinedEnv -> LinuxDesktopEnvironment.MATE
+        else -> LinuxDesktopEnvironment.UNKNOWN
     }
 }
