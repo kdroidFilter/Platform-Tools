@@ -114,7 +114,7 @@ The `isSystemInDarkMode` function determines whether the system is currently in 
 
 #### 🔍 How It Works
 
-- On **desktop platforms (Windows, macOS, Linux)**, `isSystemInDarkMode` utilizes [JNA (Java Native Access)](https://github.com/java-native-access/jna) to detect and react to dark mode changes dynamically.
+- On **desktop platforms (Windows, macOS, Linux)**, `isSystemInDarkMode` reacts to system theme changes. It uses native APIs on Windows/macOS, and Desktop Environment detection on Linux (GNOME/KDE are reactive).
 - On **other platforms (Android, iOS, JVM, JavaScript, WebAssembly)**, `isSystemInDarkMode` falls back to `isSystemInDarkTheme`, ensuring compatibility across all targets.
 - This makes `isSystemInDarkMode` a **fully cross-platform and reactive solution** for detecting dark mode preferences in a Kotlin Multiplatform project.
 
@@ -226,6 +226,86 @@ compose.desktop {
 
 On Linux, the title bar updates correctly with system-wide dark mode settings, so no additional configuration is required.
 
+#### Linux Desktop Environment and Dark Mode Detection
+
+API changes (Linux/KDE) – Summary:
+- isLinuxInDarkMode() is now reactive for GNOME and KDE. On KDE it uses the new isKdeInDarkMode().
+- getKdeThemeState() is auto-reactive and updated in background; no manual monitoring required.
+- rememberKdeDarkModeState() is public for Compose UIs.
+
+The core module includes utilities to detect the running Linux Desktop Environment and whether a dark theme is active. This is used by the dark mode detector on JVM/Linux and can also be used directly if needed.
+
+- Enum of supported environments:
+  - `GNOME`, `KDE`, `XFCE`, `CINNAMON`, `MATE`, `UNKNOWN`.
+- Functions (JVM/Linux):
+  - `fun detectLinuxDesktopEnvironment(): LinuxDesktopEnvironment?`
+    - Returns `null` if the OS is not Linux; otherwise detects the DE using `XDG_CURRENT_DESKTOP` and `DESKTOP_SESSION`.
+  - `fun isLinuxDarkTheme(): Boolean?`
+    - Returns `true`/`false` depending on whether a dark theme is detected for the current DE.
+    - Returns `null` if not Linux or if detection fails/unknown.
+  - `@Composable fun isLinuxInDarkMode(): Boolean`
+    - Reactive variant for Compose. Uses GNOME/KDE live detectors when available; falls back to one-time checks for other DEs.
+
+Detection strategy per desktop environment:
+- KDE/Plasma: reads `kdeglobals` via `kreadconfig5 --file kdeglobals --group General --key ColorScheme`; falls back to `lookandfeeltool --current`.
+- GNOME: checks `gsettings get org.gnome.desktop.interface gtk-theme`; if not conclusive, checks `gsettings get org.gnome.desktop.interface color-scheme` for `prefer-dark`.
+- XFCE: reads theme name via `xfconf-query -c xsettings -p /Net/ThemeName`.
+- Cinnamon: `gsettings get org.cinnamon.desktop.interface gtk-theme`.
+- MATE: `gsettings get org.mate.interface gtk-theme`.
+
+Example (JVM/Linux):
+```kotlin
+// import io.github.kdroidfilter.platformtools.detectLinuxDesktopEnvironment
+// import io.github.kdroidfilter.platformtools.isLinuxDarkTheme
+
+val de = detectLinuxDesktopEnvironment()
+if (de == null) {
+    println("Not running on Linux")
+} else {
+    println("DE: $de | Dark: ${isLinuxDarkTheme()}")
+}
+```
+
+Note: These helpers execute system tools (`gsettings`, `xfconf-query`, `kreadconfig5`, `lookandfeeltool`) when available. If the required tool is missing for a given DE, the function may return `null`.
+
+##### KDE theme details
+
+Note: The KDE APIs below have been enhanced to be reactive out of the box. See the API changes summary just after this section.
+
+In addition to the general dark theme detection, KDE users can get a more granular state out of the box:
+
+- `fun isKdePanelDark(): Boolean?`
+  - Detects whether the Plasma panel (taskbar) itself is dark. Useful for mixed configurations where windows are light but the panel uses a dark theme.
+  - Strategy: reads Plasma/Plasmashell theme from `plasmarc`/`plasmashellrc` via `kreadconfig5`; falls back to `kdeglobals` `LookAndFeelPackage`.
+- `data class KdeThemeState(val windowTheme: Boolean?, val panelTheme: Boolean?)`
+  - Convenience data structure with helpers: `isMixed`, `isFullDark`, `isFullLight`.
+- `fun getKdeThemeState(): KdeThemeState?`
+  - Now auto-reactive: returns a cached state that is updated in the background using DBus signals; subsequent calls reflect the latest theme state. Returns `null` if not on KDE.
+- `@Composable fun rememberKdeDarkModeState(): KdeThemeState?`
+  - Compose-friendly helper that exposes the reactive KDE state. Internally manages monitoring lifecycle; recommended for UI.
+- `@Composable internal fun isKdeInDarkMode(): Boolean`
+  - Convenience boolean derived from KDE theme state. Used internally by `isLinuxInDarkMode()` when DE is KDE.
+
+Example (JVM/KDE):
+```kotlin
+// val state = getKdeThemeState()
+val state = getKdeThemeState()
+if (state == null) {
+    println("Not on KDE")
+} else {
+    println("Window dark: ${state.windowTheme} | Panel dark: ${state.panelTheme}")
+    if (state.isMixed) println("Mixed theme detected")
+}
+
+// In Compose UI (recommended):
+@Composable
+fun KdeInfo() {
+    val s = rememberKdeDarkModeState()
+    Text("KDE window dark: ${s?.windowTheme}")
+    Text("KDE panel dark: ${s?.panelTheme}")
+}
+```
+
 ---
 
 ## 📦 Installation
@@ -239,6 +319,10 @@ implementation("io.github.kdroidfilter:platformtools.darkmodedetector:<version>"
 ---
 
 With `isSystemInDarkMode`, your Kotlin Multiplatform projects can now dynamically react to dark mode changes on all supported platforms. 🚀
+
+---
+
+For detailed changes in the latest version, see: [RELEASE_NOTES_0.6.0.md](RELEASE_NOTES_0.6.0.md)
 
 
 ## 🔄 RTL Windows Module (JVM only)
