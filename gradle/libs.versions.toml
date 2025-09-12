@@ -12,7 +12,7 @@ kotlinxBrowserWasmJs = "0.5.0"
 kotlinxCoroutinesCore = "1.10.2"
 core = "1.16.0"
 activityKtx = "1.10.1"
-ktor = "3.2.2"
+ktor = "3.3.0"
 navigationCompose = "2.9.0-beta05"
 slf4jSimple = "2.0.17"
 
