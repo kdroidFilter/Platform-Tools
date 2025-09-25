@@ -1,9 +1,9 @@
-package io.github.kdroidfilter.platformtools.clipboardmanager.mac
+package io.github.kdroidfilter.platformtools.clipboardmanager
 
-import io.github.kdroidfilter.platformtools.clipboardmanager.* // ClipboardMonitor, ClipboardListener, ClipboardContent
 import java.awt.Toolkit
 import java.awt.datatransfer.DataFlavor
 import java.awt.datatransfer.Transferable
+import java.io.File
 import java.security.MessageDigest
 import java.util.concurrent.CountDownLatch
 import java.util.concurrent.Executors
@@ -23,7 +23,7 @@ import java.util.concurrent.atomic.AtomicBoolean
  *  - We poll the system clipboard and coalesce duplicate payloads via a signature.
  *  - Interval defaults to 200 ms (feels "instant" without wasting CPU).
  */
-class MacOSClipboardMonitor(
+class AwtOSClipboardMonitor(
     private val listener: ClipboardListener,
     private val intervalMillis: Long = 200L
 ) : ClipboardMonitor {
@@ -118,7 +118,7 @@ class MacOSClipboardMonitor(
         if (contents.isDataFlavorSupported(DataFlavor.javaFileListFlavor)) {
             runCatching {
                 @Suppress("UNCHECKED_CAST")
-                val list = contents.getTransferData(DataFlavor.javaFileListFlavor) as List<java.io.File>
+                val list = contents.getTransferData(DataFlavor.javaFileListFlavor) as List<File>
                 files = list.map { it.absolutePath }
             }
         }
