@@ -1,23 +1,31 @@
 package io.github.kdroidfilter.platformtools.clipboardmanager.windows
 
+import com.sun.jna.Pointer
 import io.github.kdroidfilter.platformtools.clipboardmanager.*
 import java.awt.Toolkit
 import java.awt.datatransfer.DataFlavor
 import java.util.concurrent.CountDownLatch
 import java.util.concurrent.atomic.AtomicBoolean
+import java.util.concurrent.atomic.AtomicReference
 import com.sun.jna.platform.win32.*
 import com.sun.jna.platform.win32.WinUser.*
 import com.sun.jna.platform.win32.WinDef.*
+import com.sun.jna.ptr.PointerByReference
 
 class WindowsClipboardMonitor(private val listener: ClipboardListener) : ClipboardMonitor {
     private val WM_CLIPBOARDUPDATE = 0x031D
     private val WM_QUIT = 0x0012
     private val WM_DESTROY = 0x0002
 
+    // Keep a strong reference to the WindowProc to prevent GC.
+    private val wndProc: WindowProc = WindowProc { h, msg, w, l -> handleMessage(h, msg, w, l) }
+
     private var hwnd: HWND? = null
+    private var classRegistered = false
     private var thread: Thread? = null
     private val running = AtomicBoolean(false)
     private val started = CountDownLatch(1)
+    private val startError = AtomicReference<Throwable?>(null)
 
     override fun start() {
         if (running.get()) return
@@ -26,8 +34,17 @@ class WindowsClipboardMonitor(private val listener: ClipboardListener) : Clipboa
         thread = Thread({
             try {
                 createMessageWindow()
+            } catch (e: Throwable) {
+                startError.set(e)
+            } finally {
+                // Unblock the starter regardless of success/failure
                 started.countDown()
-                loop()
+            }
+
+            try {
+                if (startError.get() == null) {
+                    loop()
+                }
             } finally {
                 cleanup()
             }
@@ -36,7 +53,14 @@ class WindowsClipboardMonitor(private val listener: ClipboardListener) : Clipboa
             start()
         }
 
+        // Wait until window creation succeeded or failed
         started.await()
+
+        // Surface any startup failure to caller
+        startError.get()?.let { err ->
+            running.set(false)
+            throw err
+        }
     }
 
     override fun stop() {
@@ -50,30 +74,83 @@ class WindowsClipboardMonitor(private val listener: ClipboardListener) : Clipboa
 
     override fun getCurrentContent(): ClipboardContent = readClipboard()
 
+    private fun lastErrorMsg(prefix: String): String {
+        val code = Kernel32.INSTANCE.GetLastError()
+        if (code == 0) return "$prefix (GetLastError=0)"
+
+        val flags = WinBase.FORMAT_MESSAGE_FROM_SYSTEM or
+                WinBase.FORMAT_MESSAGE_IGNORE_INSERTS or
+                WinBase.FORMAT_MESSAGE_ALLOCATE_BUFFER
+
+        val out = PointerByReference()
+        val len = Kernel32.INSTANCE.FormatMessage(
+            flags,
+            null,
+            code,
+            0,
+            out,
+            0,
+            null
+        )
+        if (len == 0) {
+            return "$prefix (error $code: <failed to format message>)"
+        }
+
+        val ptr: Pointer = out.value
+        val msg = try {
+            ptr.getWideString(0).trim()
+        } finally {
+            Kernel32.INSTANCE.LocalFree(ptr)
+        }
+        return "$prefix (error $code: $msg)"
+    }
+
     private fun createMessageWindow() {
         val hInstance = Kernel32.INSTANCE.GetModuleHandle(null)
-        val className = "ClipboardMonitorWindow"
+        val className = "ClipboardMonitorWindow_${Integer.toHexString(System.identityHashCode(this))}"
 
-        val wndClass = WNDCLASSEX().apply {
-            cbSize = size()
-            lpfnWndProc = WindowProc { h, msg, w, l -> handleMessage(h, msg, w, l) }
-            this.hInstance = hInstance
-            lpszClassName = className
+        // Register once per instance
+        if (!classRegistered) {
+            val wndClass = WNDCLASSEX().apply {
+                cbSize = size()
+                lpfnWndProc = wndProc
+                this.hInstance = hInstance
+                lpszClassName = className
+            }
+            if (User32.INSTANCE.RegisterClassEx(wndClass).toInt() == 0) {
+                throw IllegalStateException(lastErrorMsg("RegisterClassEx failed"))
+            }
+            classRegistered = true
         }
 
-        if (User32.INSTANCE.RegisterClassEx(wndClass).toInt() == 0) {
-            error("RegisterClassEx failed")
-        }
-
+        // -------- Attempt #1: message-only parent (HWND_MESSAGE) --------
         hwnd = User32.INSTANCE.CreateWindowEx(
             0, className, "Clipboard Monitor", 0,
             0, 0, 0, 0,
             HWND_MESSAGE, null, hInstance, null
-        ) ?: error("CreateWindowEx failed")
+        )
 
-        hwnd?.let {
+        if (hwnd == null || !User32.INSTANCE.IsWindow(hwnd)) {
+            val firstErr = lastErrorMsg("CreateWindowEx (HWND_MESSAGE) failed")
+
+            // -------- Attempt #2: hidden top-level WS_POPUP, no parent --------
+            val WS_POPUP = 0x80000000.toInt()
+            hwnd = User32.INSTANCE.CreateWindowEx(
+                0, className, "Clipboard Monitor", WS_POPUP,
+                0, 0, 1, 1,
+                null, null, hInstance, null
+            )
+
+            if (hwnd == null || !User32.INSTANCE.IsWindow(hwnd)) {
+                throw IllegalStateException("$firstErr; then fallback also failed: ${lastErrorMsg("CreateWindowEx (WS_POPUP) failed")}")
+            }
+            // Keep it hidden; no ShowWindow call
+        }
+
+        // Register for clipboard notifications
+        hwnd!!.let {
             if (!User32Extended.INSTANCE.AddClipboardFormatListener(it)) {
-                error("AddClipboardFormatListener failed")
+                throw IllegalStateException(lastErrorMsg("AddClipboardFormatListener failed"))
             }
         }
     }
@@ -101,8 +178,8 @@ class WindowsClipboardMonitor(private val listener: ClipboardListener) : Clipboa
                     User32.INSTANCE.TranslateMessage(msg)
                     User32.INSTANCE.DispatchMessage(msg)
                 }
-                r == 0 -> break
-                else -> break
+                r == 0 -> break // WM_QUIT
+                else -> break   // error
             }
         }
     }
@@ -114,6 +191,7 @@ class WindowsClipboardMonitor(private val listener: ClipboardListener) : Clipboa
         }
         hwnd = null
         running.set(false)
+        // Unregistering the class is optional; OS will clean up at process exit.
     }
 
     private fun readClipboard(): ClipboardContent {

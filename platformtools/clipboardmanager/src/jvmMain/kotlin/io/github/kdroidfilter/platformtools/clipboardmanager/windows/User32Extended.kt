@@ -12,6 +12,8 @@ interface User32Extended : User32 {
     fun GetClipboardSequenceNumber(): DWORD
 
     companion object {
+        // W32APIOptions.DEFAULT_OPTIONS sets Unicode + useLastError=true,
+        // so Kernel32.GetLastError() will return the right code.
         val INSTANCE: User32Extended =
             Native.load("user32", User32Extended::class.java, W32APIOptions.DEFAULT_OPTIONS)
     }
