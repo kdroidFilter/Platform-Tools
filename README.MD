@@ -8,6 +8,7 @@
 - [Core Module](#-core-module)
 - [Dark Mode Detection Module](#-dark-mode-detection-module)
 - [RTL Windows Module](#-rtl-windows-module-jvm-only)
+- [Clipboard Manager Module](#-clipboard-manager-module)
 - [AppManager Module](#-appmanager-module)
 - [Release Fetcher](#-release-fetcher)
 - [License](#-license)
@@ -377,6 +378,44 @@ This library is available on Maven Central. To include this module in your proje
 implementation("io.github.kdroidfilter:platformtools.rtlwindows:<version>")
 ```
 
+---
+
+## 📋 Clipboard Manager Module
+
+[![Maven Central](https://img.shields.io/maven-central/v/io.github.kdroidfilter/platformtools.clipboardmanager?label=Maven%20Central)](https://central.sonatype.com/artifact/io.github.kdroidfilter/platformtools.clipboardmanager)
+
+The Clipboard Manager module provides a simple, cross-platform API to monitor clipboard changes and read current clipboard content.
+
+### Features
+- Listen to clipboard changes with a lightweight listener interface.
+- Start/stop a background monitor per platform.
+- Read the current clipboard state on demand.
+- Rich content model: text, HTML, RTF, files list, image availability flag, and timestamp.
+
+### Quick start
+```kotlin
+class LoggerClipboardListener : io.github.kdroidfilter.platformtools.clipboardmanager.ClipboardListener {
+    override fun onClipboardChange(content: io.github.kdroidfilter.platformtools.clipboardmanager.ClipboardContent) {
+        println("[Clipboard] text=${content.text} html=${content.html != null} files=${content.files?.size ?: 0} at ${content.timestamp}")
+    }
+}
+
+fun main() {
+    val monitor: io.github.kdroidfilter.platformtools.clipboardmanager.ClipboardMonitor =
+        io.github.kdroidfilter.platformtools.clipboardmanager.ClipboardMonitorFactory.create(LoggerClipboardListener())
+    monitor.start()
+}
+```
+
+### Installation
+Add the dependency from Maven Central:
+```kotlin
+implementation("io.github.kdroidfilter:platformtools.clipboardmanager:<version>")
+```
+
+### Platform support
+- JVM/Windows: native Windows clipboard monitor via JNA (high-efficiency event-based listener).
+- JVM/macOS and JVM/Linux: AWT-based clipboard monitor.
 ---
 
 ## 🔧 AppManager Module
