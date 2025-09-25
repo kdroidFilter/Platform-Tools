@@ -392,17 +392,14 @@ The Clipboard Manager module provides a simple, cross-platform API to monitor cl
 - Read the current clipboard state on demand.
 - Rich content model: text, HTML, RTF, files list, image availability flag, and timestamp.
 
-### Quick start
-```kotlin
-class LoggerClipboardListener : io.github.kdroidfilter.platformtools.clipboardmanager.ClipboardListener {
-    override fun onClipboardChange(content: io.github.kdroidfilter.platformtools.clipboardmanager.ClipboardContent) {
-        println("[Clipboard] text=${content.text} html=${content.html != null} files=${content.files?.size ?: 0} at ${content.timestamp}")
-    }
-}
 
+## Usage
+
+```kotlin
 fun main() {
-    val monitor: io.github.kdroidfilter.platformtools.clipboardmanager.ClipboardMonitor =
-        io.github.kdroidfilter.platformtools.clipboardmanager.ClipboardMonitorFactory.create(LoggerClipboardListener())
+    val monitor = ClipboardMonitorFactory.create { content ->
+        println("Clipboard changed: ${content.text ?: "(non-text content)"}")
+    }
     monitor.start()
 }
 ```
