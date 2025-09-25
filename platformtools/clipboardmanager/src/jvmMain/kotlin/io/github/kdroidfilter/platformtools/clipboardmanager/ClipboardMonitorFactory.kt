@@ -7,8 +7,7 @@ object ClipboardMonitorFactory {
     fun create(listener: ClipboardListener): ClipboardMonitor {
         return when {
             Platform.isWindows() -> WindowsClipboardMonitor(listener)
-            Platform.isMac()     -> AwtOSClipboardMonitor(listener)
-            Platform.isLinux()   -> AwtOSClipboardMonitor(listener)
+            Platform.isMac() || Platform.isLinux() -> AwtOSClipboardMonitor(listener)
             else -> error("Unsupported OS type: ${Platform.getOSType()}")
         }
     }
