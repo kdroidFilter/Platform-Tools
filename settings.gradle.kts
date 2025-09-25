@@ -33,6 +33,7 @@ include(":platformtools:appmanager")
 include(":platformtools:releasefetcher")
 include(":platformtools:darkmodedetector")
 include(":platformtools:rtlwindows")
+include(":platformtools:clipboardmanager")
 include(":sample:composeApp")
 include(":sample:terminalApp")
 
