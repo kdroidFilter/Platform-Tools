@@ -30,6 +30,7 @@ kotlin {
             implementation(project(":platformtools:releasefetcher"))
             implementation(project(":platformtools:darkmodedetector"))
             implementation(project(":platformtools:rtlwindows"))
+            implementation(project(":platformtools:clipboardmanager"))
         }
 
         androidMain.dependencies {

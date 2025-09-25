@@ -1,8 +1,23 @@
 package io.github.kdroidfilter.platformtools.clipboardmanager
 
+import android.content.Context
+
+/**
+ * Android actual for ClipboardMonitorFactory.
+ * You MUST call init(context) once (e.g., in Application.onCreate) before create(...).
+ */
 actual object ClipboardMonitorFactory {
+
+    private lateinit var appContext: Context
+
+    fun init(context: Context) {
+        appContext = context.applicationContext
+    }
+
     actual fun create(listener: ClipboardListener): ClipboardMonitor {
-        // TODO: Implement Android ClipboardMonitor using ClipboardManager and a listener for primary clip changes
-        throw NotImplementedError("Android ClipboardMonitor is not implemented yet. TODO: Implement using android.content.ClipboardManager")
+        check(::appContext.isInitialized) {
+            "ClipboardMonitorFactory.init(context) must be called before create(listener)."
+        }
+        return AndroidClipboardMonitor(appContext, listener)
     }
 }
