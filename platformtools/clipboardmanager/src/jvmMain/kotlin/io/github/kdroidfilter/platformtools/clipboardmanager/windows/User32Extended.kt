@@ -6,7 +6,7 @@ import com.sun.jna.platform.win32.WinDef.DWORD
 import com.sun.jna.platform.win32.WinDef
 import com.sun.jna.win32.W32APIOptions
 
-interface User32Extended : User32 {
+internal interface User32Extended : User32 {
     fun AddClipboardFormatListener(hWnd: WinDef.HWND): Boolean
     fun RemoveClipboardFormatListener(hWnd: WinDef.HWND): Boolean
     fun GetClipboardSequenceNumber(): DWORD

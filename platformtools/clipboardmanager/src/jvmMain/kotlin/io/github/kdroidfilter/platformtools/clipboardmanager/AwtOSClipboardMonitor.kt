@@ -11,19 +11,8 @@ import java.util.concurrent.ScheduledExecutorService
 import java.util.concurrent.TimeUnit
 import java.util.concurrent.atomic.AtomicBoolean
 
-/**
- * macOS clipboard monitor using lightweight polling.
- * This mirrors WindowsClipboardMonitor's public API/behavior:
- *  - start()/stop()/isRunning()
- *  - listener.onClipboardChange(...) with ClipboardContent mirroring the Windows fields
- *  - getCurrentContent() returns a one-off snapshot
- *
- * Design notes:
- *  - macOS doesn't expose a stable, public event for pasteboard changes to the JVM.
- *  - We poll the system clipboard and coalesce duplicate payloads via a signature.
- *  - Interval defaults to 200 ms (feels "instant" without wasting CPU).
- */
-class AwtOSClipboardMonitor(
+
+internal class AwtOSClipboardMonitor(
     private val listener: ClipboardListener,
     private val intervalMillis: Long = 200L
 ) : ClipboardMonitor {
@@ -32,16 +21,22 @@ class AwtOSClipboardMonitor(
     private val started = CountDownLatch(1)
     private var scheduler: ScheduledExecutorService? = null
     private var lastSignature: String? = null
+    private var shutdownHook: Thread? = null
 
     override fun start() {
         if (running.get()) return
         running.set(true)
 
         scheduler = Executors.newSingleThreadScheduledExecutor { r ->
-            Thread(r, "macOS-ClipboardMonitor").apply { isDaemon = false }
+            Thread(r, "macOS-ClipboardMonitor").apply { isDaemon = true }
         }.also { exec ->
             // Fire a first read quickly, then repeat.
             exec.scheduleAtFixedRate(::tickSafe, 0L, intervalMillis.coerceAtLeast(50L), TimeUnit.MILLISECONDS)
+        }
+
+        // Register a shutdown hook to ensure background executor is stopped
+        shutdownHook = Thread { runCatching { stop() } }.also {
+            runCatching { Runtime.getRuntime().addShutdownHook(it) }
         }
 
         started.countDown()
@@ -51,6 +46,11 @@ class AwtOSClipboardMonitor(
     override fun stop() {
         if (!running.get()) return
         running.set(false)
+        // Try to remove shutdown hook if we're not already in shutdown
+        shutdownHook?.let { hook ->
+            runCatching { Runtime.getRuntime().removeShutdownHook(hook) }
+        }
+        shutdownHook = null
         scheduler?.shutdownNow()
         scheduler = null
         lastSignature = null

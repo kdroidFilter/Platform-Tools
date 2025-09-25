@@ -12,7 +12,7 @@ import com.sun.jna.platform.win32.WinUser.*
 import com.sun.jna.platform.win32.WinDef.*
 import com.sun.jna.ptr.PointerByReference
 
-class WindowsClipboardMonitor(private val listener: ClipboardListener) : ClipboardMonitor {
+internal class WindowsClipboardMonitor(private val listener: ClipboardListener) : ClipboardMonitor {
     private val WM_CLIPBOARDUPDATE = 0x031D
     private val WM_QUIT = 0x0012
     private val WM_DESTROY = 0x0002
@@ -26,6 +26,7 @@ class WindowsClipboardMonitor(private val listener: ClipboardListener) : Clipboa
     private val running = AtomicBoolean(false)
     private val started = CountDownLatch(1)
     private val startError = AtomicReference<Throwable?>(null)
+    private var shutdownHook: Thread? = null
 
     override fun start() {
         if (running.get()) return
@@ -49,8 +50,13 @@ class WindowsClipboardMonitor(private val listener: ClipboardListener) : Clipboa
                 cleanup()
             }
         }, "Windows-ClipboardMonitor").apply {
-            isDaemon = false
+            isDaemon = true
             start()
+        }
+
+        // Register a shutdown hook to ensure background thread is stopped
+        shutdownHook = Thread { runCatching { stop() } }.also {
+            runCatching { Runtime.getRuntime().addShutdownHook(it) }
         }
 
         // Wait until window creation succeeded or failed
@@ -66,6 +72,11 @@ class WindowsClipboardMonitor(private val listener: ClipboardListener) : Clipboa
     override fun stop() {
         if (!running.get()) return
         running.set(false)
+        // Try to remove shutdown hook if we're not already in shutdown
+        shutdownHook?.let { hook ->
+            runCatching { Runtime.getRuntime().removeShutdownHook(hook) }
+        }
+        shutdownHook = null
         hwnd?.let { User32.INSTANCE.PostMessage(it, WM_QUIT, WPARAM(0), LPARAM(0)) }
         thread?.join(5000)
     }

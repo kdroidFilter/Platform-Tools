@@ -46,12 +46,6 @@ fun main() {
 
     monitor.start()
 
-    Runtime.getRuntime().addShutdownHook(Thread {
-        println("\n⏹️ Stopping monitor...")
-        monitor.stop()
-        println("✅ Stopped")
-    })
-
     println("\n✅ Monitoring is active!")
     println("\n📋 INSTRUCTIONS:")
     println("• Copy text, files or images")
