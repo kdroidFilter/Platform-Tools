@@ -24,11 +24,13 @@ kotlin {
             implementation(compose.components.resources)
             implementation(compose.components.uiToolingPreview)
             implementation(libs.navigation.compose)
+            implementation(libs.ktor.client.cio)
             implementation(project(":platformtools:core"))
             implementation(project(":platformtools:appmanager"))
             implementation(project(":platformtools:releasefetcher"))
             implementation(project(":platformtools:darkmodedetector"))
             implementation(project(":platformtools:rtlwindows"))
+            implementation(project(":platformtools:clipboardmanager"))
         }
 
         androidMain.dependencies {

@@ -38,6 +38,8 @@ fun App() {
         Route("Core", "core", { CoreDemo() }),
         Route("App Manager", "appmanager", { AppManagerDemo() }),
         Route("Release Fetcher", "releasefetcher", { ReleaseFetcherDemo() }),
+        Route("GitHub Repo Fetcher", "githubrepo", { GitHubRepoFetcherDemo() }),
+        Route("Clipboard", "clipboard", { ClipboardDemo() }),
     )
 
     MaterialTheme(
