@@ -28,7 +28,7 @@ internal class AwtOSClipboardMonitor(
         running.set(true)
 
         scheduler = Executors.newSingleThreadScheduledExecutor { r ->
-            Thread(r, "macOS-ClipboardMonitor").apply { isDaemon = true }
+            Thread(r, "awt-ClipboardMonitor").apply { isDaemon = true }
         }.also { exec ->
             // Fire a first read quickly, then repeat.
             exec.scheduleAtFixedRate(::tickSafe, 0L, intervalMillis.coerceAtLeast(50L), TimeUnit.MILLISECONDS)
