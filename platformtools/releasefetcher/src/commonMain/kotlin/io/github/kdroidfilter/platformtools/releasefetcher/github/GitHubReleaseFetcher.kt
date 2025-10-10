@@ -15,7 +15,10 @@ class GitHubReleaseFetcher(
     private val httpClient: HttpClient = client,
 ) {
 
-    private val json = Json { ignoreUnknownKeys = true }
+    private val json = Json {
+        ignoreUnknownKeys = true
+        coerceInputValues = true
+    }
 
     /**
      * Fetches the latest release from the GitHub API using Ktor.
