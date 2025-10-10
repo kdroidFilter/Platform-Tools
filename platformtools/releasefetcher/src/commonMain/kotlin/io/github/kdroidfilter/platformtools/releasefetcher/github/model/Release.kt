@@ -21,6 +21,6 @@ data class Release(
     val assets: List<Asset>,
     val tarball_url: String,
     val zipball_url: String,
-    val body: String,
+    val body: String? = null,
     val mentions_count: Int? = null
 )
