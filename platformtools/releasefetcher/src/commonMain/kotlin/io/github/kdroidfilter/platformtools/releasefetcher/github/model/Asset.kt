@@ -8,7 +8,7 @@ data class Asset(
     val id: Int,
     val node_id: String,
     val name: String,
-    val label: String,
+    val label: String? = null,
     val uploader: Uploader,
     val content_type: String,
     val state: String,
