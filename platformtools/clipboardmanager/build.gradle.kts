@@ -24,7 +24,6 @@ kotlin {
         commonMain.dependencies {
             implementation(project(":platformtools:core"))
             implementation(libs.kotlinx.coroutines.core)
-            implementation(libs.kermit)
         }
         commonTest.dependencies {
             implementation(kotlin("test"))

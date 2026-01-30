@@ -7,18 +7,16 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.DisposableEffect
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
-import co.touchlab.kermit.Logger
-import co.touchlab.kermit.Logger.Companion.setMinSeverity
-import co.touchlab.kermit.Severity
 import de.jangassen.jfa.foundation.Foundation
 import de.jangassen.jfa.foundation.ID
+import io.github.kdroidfilter.platformtools.debugln
+import io.github.kdroidfilter.platformtools.errorln
 import java.util.concurrent.ConcurrentHashMap
 import java.util.concurrent.Executors
 import java.util.function.Consumer
 import java.util.regex.Pattern
 
-// Initialize logger using kotlin-logging
-private val macLogger = Logger.withTag("MacOSThemeDetector").apply { setMinSeverity(Severity.Warn) }
+private const val TAG = "MacOSThemeDetector"
 
 /**
  * MacOSThemeDetector registers an observer with NSDistributedNotificationCenter
@@ -48,7 +46,7 @@ internal object MacOSThemeDetector {
         fun callback() {
             callbackExecutor.execute {
                 val isDark = isDark()
-                macLogger.d { "Theme change detected. Dark mode: $isDark" }
+                debugln(TAG) { "Theme change detected. Dark mode: $isDark" }
                 notifyListeners(isDark)
             }
         }
@@ -66,7 +64,7 @@ internal object MacOSThemeDetector {
      * and registers the observer with NSDistributedNotificationCenter.
      */
     private fun initObserver() {
-        macLogger.d { "Initializing macOS theme observer" }
+        debugln(TAG) { "Initializing macOS theme observer" }
         val pool = Foundation.NSAutoreleasePool()
         try {
             val delegateClass: ID = Foundation.allocateObjcClassPair(
@@ -77,7 +75,7 @@ internal object MacOSThemeDetector {
                 val selector = Foundation.createSelector("handleAppleThemeChanged:")
                 val added = Foundation.addMethod(delegateClass, selector, themeChangedCallback, "v@")
                 if (!added) {
-                    macLogger.e { "Failed to add observer method to NSColorChangesObserver" }
+                    errorln(TAG) { "Failed to add observer method to NSColorChangesObserver" }
                 }
                 Foundation.registerObjcClassPair(delegateClass)
             }
@@ -90,7 +88,7 @@ internal object MacOSThemeDetector {
                 Foundation.nsString("AppleInterfaceThemeChangedNotification"),
                 ID.NIL
             )
-            macLogger.d { "Observer successfully registered" }
+            debugln(TAG) { "Observer successfully registered" }
         } finally {
             pool.drain()
         }
@@ -109,7 +107,7 @@ internal object MacOSThemeDetector {
             val styleString = Foundation.toStringViaUTF8(result)
             darkPattern.matcher(styleString ?: "").matches()
         } catch (e: Exception) {
-            macLogger.e(e) { "Error reading system theme" }
+            errorln(TAG, e) { "Error reading system theme" }
             false
         } finally {
             pool.drain()
@@ -138,14 +136,14 @@ internal object MacOSThemeDetector {
 internal fun isMacOsInDarkMode(): Boolean {
     val darkModeState = remember { mutableStateOf(MacOSThemeDetector.isDark()) }
     DisposableEffect(Unit) {
-        macLogger.d { "Registering macOS dark mode listener in Compose" }
+        debugln(TAG) { "Registering macOS dark mode listener in Compose" }
         val listener = Consumer<Boolean> { newValue ->
-            macLogger.d { "Compose macOS dark mode updated: $newValue" }
+            debugln(TAG) { "Compose macOS dark mode updated: $newValue" }
             darkModeState.value = newValue
         }
         MacOSThemeDetector.registerListener(listener)
         onDispose {
-            macLogger.d { "Removing macOS dark mode listener in Compose" }
+            debugln(TAG) { "Removing macOS dark mode listener in Compose" }
             MacOSThemeDetector.removeListener(listener)
         }
     }

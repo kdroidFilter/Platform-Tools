@@ -21,7 +21,6 @@ kotlin {
         commonMain.dependencies {
             implementation(project(":platformtools:core"))
             implementation(libs.kotlinx.coroutines.core)
-            implementation(libs.kermit)
             implementation(libs.jna.jpms)
             implementation(libs.jna.platform.jpms)
         }
