@@ -1,15 +1,12 @@
 package io.github.kdroidfilter.platformtools.appmanager
 
-import co.touchlab.kermit.Logger
-import co.touchlab.kermit.Logger.Companion.setMinSeverity
-import co.touchlab.kermit.Severity
 import io.github.kdroidfilter.platformtools.OperatingSystem
 import io.github.kdroidfilter.platformtools.appmanager.WindowsPrivilegeHelper.installOnWindows
+import io.github.kdroidfilter.platformtools.debugln
 import io.github.kdroidfilter.platformtools.getOperatingSystem
 import java.io.File
 
- val logger = Logger.withTag("AppInstaller").apply { setMinSeverity(Severity.Warn) }
-
+private const val TAG = "AppInstaller"
 
 fun getAppInstaller(): AppInstaller = DesktopInstaller()
 
@@ -33,9 +30,9 @@ class DesktopInstaller : AppInstaller {
      *                 The second parameter contains an optional error message (String?).
      */
     override suspend fun installApp(appFile: File, onResult: (Boolean, String?) -> Unit) {
-        logger.d { "Starting installation for file: ${appFile.absolutePath}" }
+        debugln(TAG) { "Starting installation for file: ${appFile.absolutePath}" }
         val osDetected = getOperatingSystem()
-        logger.d { "Detected OS: $osDetected" }
+        debugln(TAG) { "Detected OS: $osDetected" }
 
         when (osDetected) {
             OperatingSystem.WINDOWS -> installOnWindows(appFile, onResult)
@@ -43,7 +40,7 @@ class DesktopInstaller : AppInstaller {
             OperatingSystem.MACOS -> installOnMac(appFile, onResult)
             else -> {
                 val message = "Installation not supported for: ${getOperatingSystem()}"
-                logger.d { message }
+                debugln(TAG) { message }
                 onResult(false, message)
             }
         }
@@ -59,28 +56,28 @@ class DesktopInstaller : AppInstaller {
      *                 The second parameter is an optional String containing an error message or output.
      */
     private fun installOnLinux(installerFile: File, onResult: (Boolean, String?) -> Unit) {
-        logger.d { "Starting installation for .deb package." }
+        debugln(TAG) { "Starting installation for .deb package." }
 
         if (!installerFile.exists()) {
             val msg = "DEB file not found: ${installerFile.absolutePath}"
-            logger.d { msg }
+            debugln(TAG) { msg }
             onResult(false, msg)
             return
         }
 
-        logger.d { "Executing dpkg via pkexec, which will prompt for a password if needed." }
+        debugln(TAG) { "Executing dpkg via pkexec, which will prompt for a password if needed." }
 
         val command = listOf("pkexec", "dpkg", "-i", installerFile.absolutePath)
-        logger.d { "pkexec command: $command" }
+        debugln(TAG) { "pkexec command: $command" }
 
         runCommand(command) { success, output ->
-            logger.d { "pkexec + dpkg result: success=$success, output=$output" }
+            debugln(TAG) { "pkexec + dpkg result: success=$success, output=$output" }
 
             if (!success) {
-                logger.d { "dpkg via pkexec failed." }
+                debugln(TAG) { "dpkg via pkexec failed." }
                 onResult(false, output)
             } else {
-                logger.d { "DEB package installation succeeded!" }
+                debugln(TAG) { "DEB package installation succeeded!" }
                 onResult(true, output)
             }
         }
@@ -97,7 +94,7 @@ class DesktopInstaller : AppInstaller {
      *                 or an error message in case of failure.
      */
     private fun runCommand(command: List<String>, onResult: (Boolean, String?) -> Unit) {
-        logger.d { "Executing command: $command" }
+        debugln(TAG) { "Executing command: $command" }
         try {
             val process = ProcessBuilder(command)
                 .redirectErrorStream(true)
@@ -106,7 +103,7 @@ class DesktopInstaller : AppInstaller {
             val output = process.inputStream.bufferedReader().readText()
             val exitCode = process.waitFor()
 
-            logger.d { "Command completed (exitCode=$exitCode). Output: $output" }
+            debugln(TAG) { "Command completed (exitCode=$exitCode). Output: $output" }
 
             if (exitCode == 0) {
                 onResult(true, "Success. Output: $output")
@@ -115,7 +112,7 @@ class DesktopInstaller : AppInstaller {
             }
 
         } catch (e: Exception) {
-            logger.d { "Exception in runCommand(): ${e.message}" }
+            debugln(TAG) { "Exception in runCommand(): ${e.message}" }
             e.printStackTrace()
             onResult(false, "Exception during execution: ${e.message}")
         }

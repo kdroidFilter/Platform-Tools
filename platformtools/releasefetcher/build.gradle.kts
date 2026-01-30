@@ -30,7 +30,6 @@ kotlin {
             compileOnly(libs.ktor.client.logging)
             compileOnly(libs.ktor.client.cio)
             api(libs.semver)
-            implementation(libs.kermit)
 
         }
 
@@ -44,9 +43,6 @@ kotlin {
 
         jvmMain {
             dependsOn(androidJvmMain)
-            dependencies {
-                implementation(libs.slf4j.simple)
-            }
         }
 
         androidMain {

@@ -4,16 +4,14 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.DisposableEffect
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
-import co.touchlab.kermit.Logger
-import co.touchlab.kermit.Logger.Companion.setMinSeverity
-import co.touchlab.kermit.Severity
+import io.github.kdroidfilter.platformtools.debugln
+import io.github.kdroidfilter.platformtools.errorln
 import java.io.BufferedReader
 import java.io.InputStreamReader
 import java.util.concurrent.ConcurrentHashMap
 import java.util.function.Consumer
 
-// Logger for GNOME
-private val gnomeLogger = Logger.withTag("GnomeThemeDetector").apply { setMinSeverity(Severity.Warn) }
+private const val TAG = "GnomeThemeDetector"
 
 /**
  * GNOME specific theme detector using gsettings and monitoring.
@@ -38,7 +36,7 @@ internal object GnomeThemeDetector {
                 val process = runtime.exec(cmd)
                 BufferedReader(InputStreamReader(process.inputStream)).use { reader ->
                     val line = reader.readLine()
-                    gnomeLogger.d { "Command '$cmd' output: $line" }
+                    debugln(TAG) { "Command '$cmd' output: $line" }
                     if (line != null && isDarkTheme(line)) {
                         return true
                     }
@@ -46,7 +44,7 @@ internal object GnomeThemeDetector {
             }
             false
         } catch (e: Exception) {
-            gnomeLogger.e(e) { "Couldn't detect GNOME theme" }
+            errorln(TAG, e) { "Couldn't detect GNOME theme" }
             false
         }
     }
@@ -56,12 +54,12 @@ internal object GnomeThemeDetector {
         detectorThread = object : Thread("GTK Theme Detector Thread") {
             private var lastValue: Boolean = isDark()
             override fun run() {
-                gnomeLogger.d { "Starting GTK theme monitoring thread" }
+                debugln(TAG) { "Starting GTK theme monitoring thread" }
                 val runtime = Runtime.getRuntime()
                 val process = try {
                     runtime.exec(MONITORING_CMD)
                 } catch (e: Exception) {
-                    gnomeLogger.e(e) { "Couldn't start monitoring process" }
+                    errorln(TAG, e) { "Couldn't start monitoring process" }
                     return
                 }
 
@@ -72,22 +70,22 @@ internal object GnomeThemeDetector {
                             !line.contains("color-scheme", ignoreCase = true)
                         ) continue
 
-                        gnomeLogger.d { "Monitoring output: $line" }
+                        debugln(TAG) { "Monitoring output: $line" }
                         val currentIsDark = isDarkThemeFromLine(line) ?: isDark()
                         if (currentIsDark != lastValue) {
                             lastValue = currentIsDark
-                            gnomeLogger.d { "Detected theme change => dark: $currentIsDark" }
+                            debugln(TAG) { "Detected theme change => dark: $currentIsDark" }
                             for (listener in listeners) {
                                 try { listener.accept(currentIsDark) } catch (ex: RuntimeException) {
-                                    gnomeLogger.e(ex) { "Exception while notifying listener" }
+                                    errorln(TAG, ex) { "Exception while notifying listener" }
                                 }
                             }
                         }
                     }
-                    gnomeLogger.d { "GTK theme monitoring thread ending" }
+                    debugln(TAG) { "GTK theme monitoring thread ending" }
                     if (process.isAlive) {
                         process.destroy()
-                        gnomeLogger.d { "Monitoring process destroyed" }
+                        debugln(TAG) { "Monitoring process destroyed" }
                     }
                 }
             }
@@ -142,14 +140,14 @@ internal fun isGnomeInDarkMode(): Boolean {
     val darkModeState = remember { mutableStateOf(GnomeThemeDetector.isDark()) }
 
     DisposableEffect(Unit) {
-        gnomeLogger.d { "Registering GNOME dark mode listener in Compose" }
+        debugln(TAG) { "Registering GNOME dark mode listener in Compose" }
         val listener = Consumer<Boolean> { newValue ->
-            gnomeLogger.d { "GNOME dark mode updated: $newValue" }
+            debugln(TAG) { "GNOME dark mode updated: $newValue" }
             darkModeState.value = newValue
         }
         GnomeThemeDetector.registerListener(listener)
         onDispose {
-            gnomeLogger.d { "Removing GNOME dark mode listener in Compose" }
+            debugln(TAG) { "Removing GNOME dark mode listener in Compose" }
             GnomeThemeDetector.removeListener(listener)
         }
     }

@@ -45,7 +45,6 @@ kotlin {
                 exclude(group = "net.java.dev.jna", module = "jna-jpms")
                 exclude(group = "net.java.dev.jna", module = "jna-platform-jpms")
             }
-            implementation(libs.kermit)
         }
 
 
